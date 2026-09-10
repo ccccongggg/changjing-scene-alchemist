@@ -1,0 +1,115 @@
+<template>
+  <div class="sol lk-card">
+    <header class="sol__head">
+      <span class="lk-badge">A3 · 方案迁移</span>
+    </header>
+
+    <div class="sol__summary">{{ data.summary }}</div>
+
+    <ol class="sol__steps">
+      <li v-for="s in data.steps" :key="s.step" class="sol__step">
+        <span class="sol__no">{{ s.step }}</span>
+        <div class="sol__body">
+          <p class="sol__action">{{ s.action }}</p>
+          <p class="sol__why">
+            <span class="sol__why-k">why</span>{{ s.why }}
+            <span v-if="s.ref" class="sol__ref">↩ {{ s.ref }}</span>
+          </p>
+        </div>
+      </li>
+    </ol>
+
+    <pre v-if="data.code" class="sol__code"><code>{{ data.code }}</code></pre>
+  </div>
+</template>
+
+<script setup>
+defineProps({ data: { type: Object, required: true } })
+</script>
+
+<style scoped>
+.sol {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.sol__summary {
+  background: var(--zh-blue-soft);
+  border: 1px solid var(--zh-blue-line-strong);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text);
+}
+.sol__steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sol__step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.sol__no {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--zh-blue);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sol__body {
+  flex: 1;
+}
+.sol__action {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+}
+.sol__why {
+  margin: 4px 0 0;
+  font-size: 12.8px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+.sol__why-k {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--zh-blue);
+  border: 1px solid var(--zh-blue-line-strong);
+  border-radius: 5px;
+  padding: 0 5px;
+  margin-right: 6px;
+}
+.sol__ref {
+  display: inline-block;
+  margin-left: 8px;
+  color: var(--zh-blue);
+  cursor: default;
+}
+.sol__code {
+  margin: 0;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #cdd6e6;
+  overflow-x: auto;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+</style>

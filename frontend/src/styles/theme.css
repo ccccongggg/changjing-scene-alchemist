@@ -1,0 +1,211 @@
+/* ===== 场景炼金师 · 知乎风格（白底 + 知乎蓝） ===== */
+:root {
+  /* 知乎主色 */
+  --zh-blue: #056de8;
+  --zh-blue-2: #0084ff;
+  --zh-blue-hover: #0050b3;
+  --zh-blue-soft: #ebf3ff;
+  --zh-blue-line: rgba(5, 109, 232, 0.18);
+  --zh-blue-line-strong: rgba(5, 109, 232, 0.32);
+
+  /* 中性 */
+  --bg: #f6f6f6;       /* 知乎灰底 */
+  --bg-2: #ffffff;     /* 白卡 */
+  --surface: #ffffff;
+  --surface-2: #f6f6f6;
+  --surface-3: #f0f2f7;
+  --border: #ebebeb;
+  --border-strong: #d8d8d8;
+
+  /* 文字 */
+  --text: #1a1a1a;
+  --text-2: #444444;
+  --text-3: #8590a6;       /* 知乎浅灰 */
+
+  /* 辅色（金色降级为蛛网/装饰点缀，不再做主色） */
+  --gold: #e7b873;
+  --gold-2: #f4d79e;
+  --gold-soft: rgba(231, 184, 115, 0.08);
+  --gold-line: rgba(231, 184, 115, 0.22);
+
+  /* 形状 */
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-lg: 12px;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+
+  /* 字体 */
+  --font: -apple-system, BlinkMacSystemFont, "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue",
+    Helvetica, Arial, sans-serif;
+
+  --maxw: 1080px;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100vh;
+}
+a {
+  color: var(--zh-blue);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--zh-blue-hover);
+}
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+/* ----- 背景氛围光（弱化，深色炼金光圈改为浅色光晕） ----- */
+.lk-aurora {
+  display: none;
+}
+
+/* ----- 文字渐变（保留作为重点字点缀，但改用蓝色调） ----- */
+.lk-grad {
+  background: linear-gradient(100deg, var(--zh-blue-2), var(--zh-blue));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ----- 按钮 ----- */
+.lk-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease,
+    transform 0.18s ease;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.lk-btn--primary {
+  background: var(--zh-blue);
+  color: #ffffff;
+  border-color: var(--zh-blue);
+}
+.lk-btn--primary:hover {
+  background: var(--zh-blue-hover);
+  border-color: var(--zh-blue-hover);
+  color: #ffffff;
+}
+.lk-btn--ghost {
+  background: transparent;
+  border-color: var(--zh-blue-line-strong);
+  color: var(--zh-blue);
+}
+.lk-btn--ghost:hover {
+  background: var(--zh-blue-soft);
+  color: var(--zh-blue-hover);
+  border-color: var(--zh-blue);
+}
+.lk-btn--flat {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text-2);
+}
+.lk-btn--flat:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+/* ----- 卡片 ----- */
+.lk-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* ----- 胶囊标签 ----- */
+.lk-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.4;
+  background: var(--zh-blue-soft);
+  border: 1px solid var(--zh-blue-line);
+  color: var(--zh-blue);
+  white-space: nowrap;
+}
+.lk-chip--muted {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text-2);
+}
+.lk-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--zh-blue-soft);
+  color: var(--zh-blue);
+  border: 1px solid var(--zh-blue-line);
+}
+
+/* ----- 滚动揭示动画 ----- */
+@keyframes lk-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.reveal {
+  opacity: 0;
+  animation: lk-fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(var(--i, 0) * 90ms);
+}
+
+@media (max-width: 760px) {
+  .reveal {
+    animation-delay: 0ms !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1 !important;
+    animation: none !important;
+  }
+  .orb,
+  .hero__card,
+  .float-chip,
+  .eyebrow .dot {
+    animation: none !important;
+  }
+}

@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node
+node_modules/
+
+# 构建产物（部署用 backend/site 已包含一份副本）
+frontend/dist/
+
+# 本地数据与日志
+backend/.server.log
+*.log
+
+# 环境变量（含密钥时勿提交）
+.env
+
+# 编辑器
+.vscode/
+.idea/
