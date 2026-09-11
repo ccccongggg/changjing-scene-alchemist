@@ -529,20 +529,77 @@ onMounted(load)
   gap: 12px;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 860px) {
+  .library-page {
+    padding: 6px 0 48px;
+  }
   .page-head {
     flex-direction: column;
     gap: 12px;
+    margin-bottom: 18px;
+  }
+  .page-head h1 {
+    font-size: 24px;
+  }
+  .page-head p {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .page-head__actions .lk-btn {
+    width: 100%;
+    justify-content: center;
   }
   .toolbar {
     flex-direction: column;
     align-items: stretch;
+    gap: 12px;
+    padding: 12px 14px;
+    min-width: 0;
+  }
+  /* 分类太多时横向滑动，而不是撑高整屏 */
+  .cats {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .cats::-webkit-scrollbar {
+    display: none;
+  }
+  .cat {
+    flex: none;
   }
   .search {
     width: 100%;
   }
+  .search__input {
+    font-size: 16px;
+  }
   .grid {
     grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .card {
+    padding: 16px;
+    gap: 12px;
+  }
+  .card__net {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+  .card__title {
+    font-size: 16px;
+  }
+  .card__foot {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+}
+
+@media (max-width: 380px) {
+  .card__net :deep(.sg--mini) {
+    width: 104px;
   }
 }
 </style>

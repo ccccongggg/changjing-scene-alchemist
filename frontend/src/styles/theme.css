@@ -51,6 +51,10 @@ html,
 body {
   margin: 0;
   padding: 0;
+  width: 100%;
+  /* iOS 横屏/旋转时不要自动放大字号 */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 body {
   background: var(--bg);
@@ -59,6 +63,42 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   min-height: 100vh;
+  /* 兜底：任何装饰元素溢出都不产生横向滚动条 */
+  overflow-x: hidden;
+  /* clip 不会把 body 变成滚动容器，避免破坏顶栏 position:sticky */
+  overflow-x: clip;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+/* 触屏点击不要出现灰色高亮块，长按不要弹出菜单 */
+@media (hover: none) and (pointer: coarse) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button,
+  a,
+  select,
+  input,
+  textarea {
+    touch-action: manipulation;
+  }
+}
+
+/* ===== 移动端全局微调 ===== */
+@media (max-width: 860px) {
+  :root {
+    --radius: 8px;
+    --radius-lg: 10px;
+  }
+  .lk-btn {
+    padding: 10px 16px;
+  }
 }
 a {
   color: var(--zh-blue);

@@ -20,3 +20,6 @@ backend/.server.log
 # 编辑器
 .vscode/
 .idea/
+
+# 移动端适配验证截图（临时产物）
+_shots/

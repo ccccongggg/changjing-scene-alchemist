@@ -559,16 +559,69 @@ onMounted(load)
   margin-bottom: 18px;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 860px) {
+  .contrib {
+    padding: 6px 0 48px;
+  }
   .contrib__hero {
     flex-direction: column;
     gap: 12px;
+    margin-bottom: 18px;
+  }
+  .contrib__hero h1 {
+    font-size: 24px;
+  }
+  .contrib__hero p {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .contrib__hero .lk-btn {
+    width: 100%;
+    justify-content: center;
   }
   .stats {
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    padding: 16px 14px;
+  }
+  .stat-card__num {
+    font-size: 28px;
+  }
+  .stat-card__label {
+    font-size: 14px;
+  }
+  .badges__row {
+    gap: 10px;
+  }
+  .badge {
+    width: calc(50% - 5px);
+    padding: 14px 10px;
   }
   .map__nets,
   .details__cards {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .map__net {
+    padding: 14px;
+  }
+  .details__card {
+    padding: 15px;
+  }
+  .details__row {
+    flex-direction: column;
+    gap: 2px;
+  }
+  .details__k {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .stats {
     grid-template-columns: 1fr;
   }
 }

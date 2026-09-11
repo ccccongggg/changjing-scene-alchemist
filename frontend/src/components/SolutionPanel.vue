@@ -102,14 +102,42 @@ defineProps({ data: { type: Object, required: true } })
 }
 .sol__code {
   margin: 0;
-  background: var(--surface-2);
+  background: #f6f8fa;
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 14px 16px;
   font-size: 12.5px;
   line-height: 1.6;
-  color: #cdd6e6;
+  color: #24292f;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+@media (max-width: 860px) {
+  .sol {
+    padding: 16px;
+    gap: 14px;
+  }
+  .sol__summary {
+    padding: 12px 14px;
+    font-size: 13.5px;
+    border-radius: 8px;
+  }
+  .sol__step {
+    gap: 10px;
+  }
+  .sol__no {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
+  .sol__action {
+    font-size: 13.5px;
+  }
+  .sol__code {
+    font-size: 12px;
+    padding: 12px;
+  }
 }
 </style>

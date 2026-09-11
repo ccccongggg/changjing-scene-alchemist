@@ -303,4 +303,35 @@ onUnmounted(() => stageTimer && clearInterval(stageTimer))
   border-radius: var(--radius);
   background: var(--surface);
 }
+
+@media (max-width: 860px) {
+  .bench {
+    gap: 14px;
+  }
+  .bench__top {
+    gap: 10px;
+  }
+  .bench__title {
+    font-size: 20px;
+    width: 100%;
+  }
+  .bench__loading {
+    padding: 28px 16px;
+  }
+  .bench__net {
+    border-radius: 10px;
+    text-align: left;
+    line-height: 1.6;
+  }
+  /* 操作按钮在窄屏堆叠成全宽，方便拇指点击 */
+  .bench__ops {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .bench__ops .lk-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
 </style>

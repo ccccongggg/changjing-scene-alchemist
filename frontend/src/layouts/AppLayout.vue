@@ -25,7 +25,33 @@
           <button class="avatar" title="用户中心">CC</button>
           <button class="ask" title="提一个问题">提问</button>
         </div>
+
+        <button
+          class="menu-btn"
+          :class="{ 'is-open': mobileNavOpen }"
+          :aria-expanded="mobileNavOpen"
+          aria-label="打开导航菜单"
+          @click="mobileNavOpen = !mobileNavOpen"
+        >
+          <span />
+          <span />
+          <span />
+        </button>
       </div>
+
+      <!-- 移动端下拉导航 -->
+      <nav class="mnav" :class="{ 'mnav--open': mobileNavOpen }">
+        <router-link
+          v-for="l in navLinks"
+          :key="l.to"
+          :to="l.to"
+          class="mnav__link"
+          :class="{ 'is-active': isActive(l) }"
+          @click="mobileNavOpen = false"
+        >
+          {{ l.label }}
+        </router-link>
+      </nav>
     </header>
 
     <main class="content" :class="{ 'content--home': isHome }">
@@ -43,11 +69,28 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
 const isHome = computed(() => route.path === '/')
+
+const navLinks = [
+  { to: '/', label: '首页', exact: true },
+  { to: '/bench', label: '收藏台' },
+  { to: '/library', label: '方案库' },
+  { to: '/adapt/1', label: '场景工坊' }
+]
+
+const mobileNavOpen = ref(false)
+
+const isActive = (l) =>
+  l.exact ? route.path === l.to : route.path.startsWith(l.to)
+
+// 路由切换后自动收起移动端菜单
+watch(() => route.fullPath, () => {
+  mobileNavOpen.value = false
+})
 </script>
 
 <style scoped>
@@ -197,6 +240,72 @@ const isHome = computed(() => route.path === '/')
   background: var(--zh-blue-hover);
 }
 
+/* ----- 移动端汉堡按钮（桌面隐藏） ----- */
+.menu-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 36px;
+  height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-2);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.menu-btn span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  border-radius: 2px;
+  background: var(--text-2);
+  transition: transform 0.22s ease, opacity 0.18s ease;
+}
+.menu-btn.is-open {
+  border-color: var(--zh-blue-line-strong);
+  background: var(--zh-blue-soft);
+}
+.menu-btn.is-open span {
+  background: var(--zh-blue);
+}
+.menu-btn.is-open span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+.menu-btn.is-open span:nth-child(2) {
+  opacity: 0;
+}
+.menu-btn.is-open span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* ----- 移动端下拉导航（桌面隐藏） ----- */
+.mnav {
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 14px 12px;
+  background: var(--bg-2);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 8px 18px -12px rgba(0, 0, 0, 0.25);
+}
+.mnav__link {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+.mnav__link.is-active {
+  color: var(--zh-blue);
+  font-weight: 700;
+  background: var(--zh-blue-soft);
+}
+
 /* ----- 内容区 ----- */
 .content {
   flex: 1;
@@ -204,6 +313,7 @@ const isHome = computed(() => route.path === '/')
   max-width: var(--maxw);
   margin: 0 auto;
   padding: 24px 24px 64px;
+  min-width: 0;
 }
 .content--home {
   padding: 0;
@@ -224,6 +334,7 @@ const isHome = computed(() => route.path === '/')
   gap: 18px;
   font-size: 13px;
   color: var(--text-3);
+  flex-wrap: wrap;
 }
 .footer__brand {
   color: var(--text);
@@ -236,15 +347,80 @@ const isHome = computed(() => route.path === '/')
   margin-left: auto;
 }
 
-@media (max-width: 760px) {
+/* ===== 移动端：横向空间不足，导航收进汉堡菜单 ===== */
+@media (max-width: 860px) {
   .nav {
     display: none;
   }
+  .topbar__inner {
+    height: 52px;
+    padding: 0 14px;
+    gap: 10px;
+  }
+  .brand {
+    font-size: 15px;
+    margin-right: auto;
+  }
+  .topbar__right {
+    gap: 8px;
+  }
   .search {
-    width: 140px;
+    display: none;
+  }
+  .ask {
+    padding: 0 12px;
+    font-size: 13px;
+  }
+  .menu-btn {
+    display: flex;
+  }
+  .mnav--open {
+    display: flex;
+  }
+  .content {
+    padding: 16px 14px 48px;
+  }
+  .footer__inner {
+    padding: 16px 14px;
+    gap: 10px;
   }
   .footer__hint {
     display: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .brand {
+    font-size: 14px;
+  }
+  .avatar {
+    display: none;
+  }
+  .content {
+    padding: 14px 12px 44px;
+  }
+}
+
+/* ===== 刘海屏安全区（横屏时左右不被挖孔遮挡） ===== */
+@supports (padding: max(0px)) {
+  @media (max-width: 860px) {
+    .topbar__inner {
+      padding-left: max(14px, env(safe-area-inset-left));
+      padding-right: max(14px, env(safe-area-inset-right));
+    }
+    .content {
+      padding-left: max(14px, env(safe-area-inset-left));
+      padding-right: max(14px, env(safe-area-inset-right));
+    }
+    .mnav {
+      padding-left: max(14px, env(safe-area-inset-left));
+      padding-right: max(14px, env(safe-area-inset-right));
+    }
+    .footer__inner {
+      padding-left: max(14px, env(safe-area-inset-left));
+      padding-right: max(14px, env(safe-area-inset-right));
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
   }
 }
 </style>

@@ -57,13 +57,13 @@ defineProps({ data: { type: Object, required: true } })
   margin: 0 0 10px;
 }
 .diff__title--ok {
-  color: #7fd1a6;
+  color: #0f9d63;
 }
 .diff__title--warn {
   color: var(--zh-blue);
 }
 .diff__title--fire {
-  color: #ff8a6b;
+  color: #e8590c;
 }
 .diff__same,
 .diff__risk {
@@ -98,7 +98,8 @@ defineProps({ data: { type: Object, required: true } })
   gap: 12px;
 }
 .diff__cell {
-  background: var(--surface-2);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 10px 12px;
 }
@@ -124,6 +125,21 @@ defineProps({ data: { type: Object, required: true } })
 @media (max-width: 560px) {
   .diff__pair {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 860px) {
+  .diff {
+    padding: 16px;
+    gap: 16px;
+  }
+  .diff__card {
+    padding: 12px;
+  }
+  .diff__same,
+  .diff__risk {
+    padding-left: 16px;
+    line-height: 1.7;
   }
 }
 </style>

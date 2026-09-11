@@ -130,7 +130,7 @@ const submit = () => {
 }
 .lk-chip--on {
   background: var(--zh-blue);
-  color: #2a1d08;
+  color: #ffffff;
   border-color: var(--zh-blue);
 }
 .scene__ta {
@@ -168,5 +168,40 @@ const submit = () => {
 }
 .lk-btn--primary:hover .arrow {
   transform: translateX(3px);
+}
+
+@media (max-width: 860px) {
+  .scene {
+    padding: 16px;
+    gap: 12px;
+  }
+  .scene__hint {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .scene__paste {
+    width: 100%;
+    padding: 10px 12px;
+  }
+  /* 16px 以上 iOS 聚焦时不会自动放大页面 */
+  .scene__ta {
+    font-size: 16px;
+    padding: 11px 12px;
+  }
+  .scene__ta--sm {
+    font-size: 15px;
+  }
+  .scene__foot {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .scene__foot .lk-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .lk-chip {
+    padding: 7px 12px;
+  }
 }
 </style>

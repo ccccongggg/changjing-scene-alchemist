@@ -99,9 +99,24 @@ const paramList = computed(() =>
 .origin__boundary p {
   color: var(--text-2);
 }
-@media (max-width: 600px) {
+@media (max-width: 620px) {
   .origin__cols {
     grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+
+@media (max-width: 860px) {
+  .origin {
+    padding: 16px;
+    gap: 12px;
+  }
+  .origin__scene p,
+  .origin__boundary p {
+    font-size: 14px;
+  }
+  .origin__col ul {
+    font-size: 13px;
   }
 }
 </style>
