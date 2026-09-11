@@ -6,6 +6,8 @@
 
     <div class="sol__summary">{{ data.summary }}</div>
 
+    <p v-if="data.switch" class="sol__switch">{{ data.switch }}</p>
+
     <ol class="sol__steps">
       <li v-for="s in data.steps" :key="s.step" class="sol__step">
         <span class="sol__no">{{ s.step }}</span>
@@ -20,11 +22,25 @@
     </ol>
 
     <pre v-if="data.code" class="sol__code"><code>{{ data.code }}</code></pre>
+
+    <!-- 结果回填：做成了 / 卡住了 → 复诊闭环 -->
+    <FeedbackPanel
+      v-if="adaptationId"
+      :adaptation-id="adaptationId"
+      :steps="data.steps || []"
+      @rediagnose="$emit('rediagnose', $event)"
+    />
   </div>
 </template>
 
 <script setup>
-defineProps({ data: { type: Object, required: true } })
+import FeedbackPanel from './FeedbackPanel.vue'
+
+defineProps({
+  data: { type: Object, required: true },
+  adaptationId: { type: Number, default: null }
+})
+defineEmits(['rediagnose'])
 </script>
 
 <style scoped>
@@ -42,6 +58,17 @@ defineProps({ data: { type: Object, required: true } })
   font-size: 14px;
   line-height: 1.7;
   color: var(--text);
+}
+.sol__switch {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--zh-blue);
+  background: var(--zh-blue-soft);
+  border: 1px solid var(--zh-blue-line);
+  border-radius: 999px;
+  padding: 7px 14px;
+  align-self: flex-start;
 }
 .sol__steps {
   margin: 0;
@@ -123,6 +150,10 @@ defineProps({ data: { type: Object, required: true } })
     padding: 12px 14px;
     font-size: 13.5px;
     border-radius: 8px;
+  }
+  .sol__switch {
+    border-radius: 8px;
+    line-height: 1.7;
   }
   .sol__step {
     gap: 10px;

@@ -37,8 +37,15 @@
             />
           </section>
 
+          <p v-if="notice" class="bench__notice">{{ notice }}</p>
+
           <DiffPanel :data="diff" />
-          <SolutionPanel :data="solution" />
+          <SolutionPanel
+            :key="adaptation?.id"
+            :data="solution"
+            :adaptation-id="adaptation?.id ?? null"
+            @rediagnose="onRediagnose"
+          />
 
           <div class="bench__ops">
             <router-link to="/library" class="lk-btn lk-btn--primary">
@@ -87,6 +94,9 @@ const error = ref('')
 const copied = ref(false)
 const netScenarios = ref([])
 const currentId = ref(null)
+const lastPayload = ref(null)   // 复诊要用：带着原场景再炼一版
+const retryCount = ref(0)
+const notice = ref('')
 
 const STAGES = ['解构原帖场景…', '对比你的场景差异…', '生成专属迁移方案…']
 const runStage = ref(STAGES[0])
@@ -156,6 +166,8 @@ const load = async () => {
 const onSubmit = async (payload) => {
   phase.value = 'running'
   runStage.value = STAGES[0]
+  lastPayload.value = { ...payload }
+  retryCount.value = 0
   let i = 0
   stageTimer = setInterval(() => {
     i = (i + 1) % STAGES.length
@@ -169,11 +181,8 @@ const onSubmit = async (payload) => {
     adaptation.value = res.adaptation
     phase.value = 'result'
 
-    const all = await getAdaptations()
-    netScenarios.value = (all || [])
-      .filter((a) => a.post_id === Number(props.id))
-      .map((a) => ({ id: a.id, scene_tag: a.scene_tag, user_scene: a.user_scene }))
     currentId.value = res.adaptation.id
+    await refreshNet()
   } catch (e) {
     error.value = '生成失败：' + (e?.message || e)
     phase.value = 'form'
@@ -209,10 +218,47 @@ const copyAll = async () => {
   }
 }
 
+const refreshNet = async () => {
+  const all = await getAdaptations()
+  netScenarios.value = (all || [])
+    .filter((a) => a.post_id === Number(props.id))
+    .map((a) => ({ id: a.id, scene_tag: a.scene_tag, user_scene: a.user_scene }))
+}
+
+// 复诊：带着同一段场景，避开已经走过的路，再炼一版
+const onRediagnose = async ({ avoid = [] }) => {
+  if (!lastPayload.value) return
+  phase.value = 'running'
+  runStage.value = '换一条路，基于你的约束重新设计…'
+  retryCount.value += 1
+  const tag = lastPayload.value.scene_tag || '我的场景'
+  try {
+    const res = await runAdapt({
+      ...lastPayload.value,
+      scene_tag: `${tag} · 第 ${retryCount.value + 1} 版`,
+      avoid,
+      parent_id: adaptation.value?.id ?? null
+    })
+    origin.value = res.origin
+    diff.value = res.diff
+    solution.value = res.solution
+    adaptation.value = res.adaptation
+    phase.value = 'result'
+    currentId.value = res.adaptation.id
+    await refreshNet()
+  } catch (e) {
+    phase.value = 'result'
+    notice.value = '换路这一步没连上，方案还是刚才那版——再点一次试试。'
+    setTimeout(() => (notice.value = ''), 4000)
+  }
+}
+
 const reuse = () => {
   diff.value = null
   solution.value = null
   adaptation.value = null
+  lastPayload.value = null
+  retryCount.value = 0
   phase.value = 'form'
 }
 
@@ -294,6 +340,15 @@ onUnmounted(() => stageTimer && clearInterval(stageTimer))
   gap: 12px;
   justify-content: center;
   padding: 8px 0 12px;
+}
+.bench__notice {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-2);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
 }
 .bench__error {
   padding: 40px;

@@ -25,6 +25,22 @@ def init_db():
     import models  # noqa: F401  ensure models are registered
     Base.metadata.create_all(bind=engine)
     _migrate_category_column()
+    _migrate_v11_columns()
+
+
+def _migrate_v11_columns():
+    """版本 1.1 幂等迁移：adaptations 加 branch 列（复诊换思路时用）。"""
+    from sqlalchemy import inspect, text
+    inspector = inspect(engine)
+    tables = inspector.get_table_names()
+    if "adaptations" not in tables:
+        return
+    columns = [c["name"] for c in inspector.get_columns("adaptations")]
+    for col, decl in (("branch", "TEXT"), ("parent_id", "INTEGER")):
+        if col not in columns:
+            with engine.connect() as conn:
+                conn.execute(text(f"ALTER TABLE adaptations ADD COLUMN {col} {decl}"))
+                conn.commit()
 
 
 def _migrate_category_column():

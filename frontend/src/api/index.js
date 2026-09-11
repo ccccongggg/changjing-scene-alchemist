@@ -26,3 +26,6 @@ export const deleteAdaptation = (id) => api.delete(`/adaptations/${id}`).then(un
 export const extractAdapt = (postId) =>
   api.post('/adapt/extract', { post_id: postId }).then(unwrap)
 export const runAdapt = (payload) => api.post('/adapt/run', payload).then(unwrap)
+// 复诊：无 user_note → 拿 AI 归因追问；有 user_note → 拿归因结论
+export const submitFeedback = (id, payload) =>
+  api.post(`/adaptations/${id}/feedback`, payload).then(unwrap)

@@ -603,15 +603,28 @@ def _render(obj, scene: str, constraint: str):
     return obj
 
 
-def _pick_branch(t: str, user_scene: str, user_constraint: str) -> dict | None:
-    """按场景关键词打分选分支；都不命中返回 None（走通用兜底）。"""
+def _pick_branch(t: str, user_scene: str, user_constraint: str, avoid=()) -> tuple:
+    """按场景关键词打分选分支；都不命中返回 (None, None)（走通用兜底）。
+
+    `avoid` 是复诊时要避开的分支名——同一个场景再炼一次，必须换一条路，
+    否则「换个思路再来一版」就是骗人。
+    """
+    blocked = {a for a in (avoid or ()) if a}
     text = f"{user_scene} {user_constraint}"
-    best, best_score = None, 0
+    best_name, best, best_score = None, None, 0
     for name, br in SCENE_BRANCHES.get(t, {}).items():
+        if name in blocked:
+            continue
         score = sum(1 for k in br["keywords"] if k in text)
         if score > best_score:
-            best, best_score = br, score
-    return best
+            best_name, best, best_score = name, br, score
+    return best_name, best
+
+
+def resolve_branch(t: str, user_scene: str, user_constraint: str, avoid=()) -> str:
+    """对外用：算出这次会走哪个分支（落库用，复诊时才知道该避开谁）。"""
+    name, _ = _pick_branch(t, user_scene or "", user_constraint or "", avoid)
+    return name or "_fallback"
 
 
 def _fallback_branch(t: str) -> dict:
@@ -707,11 +720,18 @@ def _mock_deconstruct(post_id: int, title: str, summary: str) -> dict:
     return copy.deepcopy(ORIGIN_TEMPLATES[_detect_type(post)])
 
 
-def _mock_generate(t, origin, user_scene, user_constraint) -> tuple:
+def _mock_generate(t, origin, user_scene, user_constraint, avoid=(), switched=None) -> tuple:
     scene_label = (user_scene or "").strip() or "你的真实场景"
     constraint_label = (user_constraint or "").strip() or "（未指定额外约束）"
-    br = _pick_branch(t, user_scene or "", user_constraint or "") or _fallback_branch(t)
+    _name, br = _pick_branch(t, user_scene or "", user_constraint or "", avoid)
+    if br is None:
+        br = _fallback_branch(t)
     br = _render(copy.deepcopy(br), scene_label, constraint_label)
+
+    if switched:
+        # 复诊换路：把「这次换了什么」写进方案，让用户看见思路确实变了
+        br["summary"] = f"{switched}。{br.get('summary', '')}".strip()
+        br["switch"] = switched
 
     diff = {
         "same": br.get("same", []),
@@ -723,6 +743,7 @@ def _mock_generate(t, origin, user_scene, user_constraint) -> tuple:
         "steps": br.get("steps", []),
         "code": br.get("code", ""),
         "summary": br.get("summary", ""),
+        "switch": br.get("switch", ""),
     }
     return diff, solution
 
@@ -836,8 +857,11 @@ def deconstruct(post) -> tuple:
     return _mock_deconstruct(post.id, post.title, post.summary or ""), "mock"
 
 
-def generate(post, scene_tag: str, user_scene: str, user_constraint: str) -> tuple:
-    """A1+A2+A3 → (origin, diff, solution, provider)。"""
+def generate(post, scene_tag: str, user_scene: str, user_constraint: str, avoid=()) -> tuple:
+    """A1+A2+A3 → (origin, diff, solution, provider)。
+
+    `avoid` 非空表示这是一次复诊：避开已经走过的分支，换一条路重出方案。
+    """
     t = _detect_type(post)
     origin, provider = deconstruct(post)
 
@@ -851,9 +875,180 @@ def generate(post, scene_tag: str, user_scene: str, user_constraint: str) -> tup
             print(f"[ai_engine] A2/A3 真实通道失败，降级 Mock：{e}")
             provider = "mock"
 
-    diff, solution = _mock_generate(t, origin, user_scene, user_constraint)
+    switched = None
+    if avoid:
+        n = len([a for a in avoid if a])
+        switched = f"已经避开前 {n} 条走过的路，本版改成按你的约束重新设计"
+    diff, solution = _mock_generate(t, origin, user_scene, user_constraint, avoid, switched)
     return origin, diff, solution, provider
 
 
 def to_json(obj) -> str:
     return json.dumps(obj, ensure_ascii=False)
+
+
+# ---------------------------------------------------------------------------
+# 复诊：用户试过之后「卡住了」的归因与下一步（版本 1.1 · P0）
+# ---------------------------------------------------------------------------
+# 文案口径严格照 docs/设计_失败用户的体验闭环.md：
+#   ① 全文不出现「失败」   ② 每次反馈都带「我们学到了什么」   ③ 永远给下一步
+# 这里的每个字都是产品承诺，改之前先读那份文档。
+
+CONSTRAINT_HINTS = (
+    "不能", "不许", "必须", "只能", "禁止", "不允许", "没法", "没时间",
+    "来不及", "预算", "成本", "工期", "太贵", "换不了", "定死了",
+)
+PARAM_HINTS = ("参数", "配置", "寄存器", "波特率", "分频", "时钟", "数值", "标定")
+
+ATTRIBUTION = {
+    "param_wrong": {
+        "label": "参数没改对",
+        "headline": "方向是对的，参数还停在原帖的硬件上",
+        "detail": "原帖那组参数是照着它自己的器件和时钟树标定的。换了平台，量级可以借，数值必须重算——这一步最容易被整段照搬过去。",
+        "excluded_phrase": "按原帖参数直接套用",
+        "remaining": [
+            "把原帖参数当成量级参考，按你的器件手册重新标定",
+            "只跑最小复现：先单通道、低速，确认基线本身是干净的",
+            "把报错那一步的寄存器/配置项单独拎出来，和手册对一遍",
+        ],
+    },
+    "scene_mismatch": {
+        "label": "场景不匹配",
+        "headline": "原帖成立的前提，和你的处境不是一回事",
+        "detail": "原帖能跑通，是因为它有自己的隐含前提（单一负载、稳定供电、室温、短距离）。你的场景里只要有一条不满足，整条方案就会偏移——这不是调参数能救回来的。",
+        "excluded_phrase": "照搬原帖的整体框架",
+        "remaining": [
+            "把问题拆开：原帖覆盖的部分照用，你特有的部分单独设计",
+            "换一条不依赖原帖前提的路线（分层缓冲 / 降速换可靠 / 加校验重传）",
+            "补一条信息：你的场景里，你自己最没把握的是哪个变量",
+        ],
+    },
+    "constraint_conflict": {
+        "label": "约束冲突",
+        "headline": "这条方案本身，正在和你的约束打架",
+        "detail": "不是参数错，也不是框架错——是「想要的效果」和「不能动的条件」本身就冲突。这种情况下再换多少版方案都一样，得先动约束，或者换一个层级来实现。",
+        "excluded_phrase": "在现有约束内硬压参数",
+        "remaining": [
+            "确认约束是硬的还是可协商的：放宽任意一项，问题就解了",
+            "在约束内换层级实现（软件补 / 换器件 / 改拓扑）",
+            "拆分目标：先做到 80%，剩下那 20% 单独找路",
+        ],
+    },
+}
+
+
+def _attribute(round_n: int, block_type: str, user_note: str) -> str:
+    """三分归因（Mock 规则版，断网可演示；真实通道切换位就在这里）。"""
+    note = user_note or ""
+    if round_n >= 3:
+        return "constraint_conflict"          # 第三次：方向没错，是约束本身在打架
+    if any(k in note for k in CONSTRAINT_HINTS):
+        return "constraint_conflict"
+    if round_n >= 2:
+        return "scene_mismatch"               # 第二次：前提不成立，换框架
+    if block_type == "step_error":
+        return "param_wrong"
+    if block_type == "phenomenon":
+        return "scene_mismatch"
+    return "param_wrong" if any(k in note for k in PARAM_HINTS) else "scene_mismatch"
+
+
+def _shorten(s: str, n: int = 28) -> str:
+    s = (s or "").strip()
+    return s if len(s) <= n else s[:n] + "…"
+
+
+def ask_question(block_type: str, block_step, solution: dict) -> str:
+    """归因追问：只问一句，但问到点上。"""
+    steps = (solution or {}).get("steps") or []
+    if block_type == "step_error":
+        n = block_step or 1
+        act = next((s.get("action", "") for s in steps if s.get("step") == n), "")
+        tail = f"第 {n} 步「{_shorten(act)}」报错" if act else f"第 {n} 步就走不下去了"
+        return f"{tail}——报错信息里最关键的那句是什么？直接贴过来，或者说说它是在哪个环节不按预期走。"
+    if block_type == "phenomenon":
+        return "现象和预期不符——具体差在哪？比如「能跑但偶尔丢几个字节」「速度一提上去就全乱」。越具体，下一次就越准。"
+    return "说说卡住的地方吧：大概是哪一步、看到什么现象。哪怕只有一句话，也够我们往下排了。"
+
+
+def rediagnose(
+    round_n: int,
+    block_type: str,
+    block_step,
+    user_note: str,
+    prev_rounds: list,
+    tried_branches: list,
+) -> dict:
+    """出复诊结论：三分归因 + 已排除/剩余可试棋盘 + 下一步。
+
+    `prev_rounds`：之前的复诊记录 [{"round":1,"attribution":"param_wrong"}, ...]
+    `tried_branches`：已经走过的方案分支名（下一版要避开）
+    """
+    attr = _attribute(round_n, block_type or "", user_note or "")
+    a = ATTRIBUTION[attr]
+
+    excluded = [
+        f"第 {r['round']} 次 · {ATTRIBUTION.get(r['attribution'], {}).get('excluded_phrase', '这条路线')}"
+        for r in prev_rounds
+    ]
+    excluded.append(f"第 {round_n} 次 · {a['excluded_phrase']}")
+
+    if round_n == 1:
+        learned = f"我们学到了：这条路的问题是「{a['label']}」——下一版直接跳过它。"
+    else:
+        learned = f"我们学到了：连续 {round_n} 次都指向「{a['label']}」，你的场景确实比原帖特殊得多。"
+
+    lead = ""
+    if round_n >= 2:
+        lead = (
+            f"连续 {round_n} 条路都不通——这恰恰说明你的场景比原帖特殊得多。"
+            "AI 正在换思路：从「照搬原帖」切换到「基于你的约束重新设计」。"
+        )
+
+    note, pending = "", ""
+    if round_n >= 3:
+        note = (
+            "你的问题很有价值，但也确实超出了现有经验的覆盖范围。"
+            f"这 {round_n} 条路、{len(excluded)} 个卡点，我们已经帮你整理成一份完整的求助材料——"
+            "比你自己从头写，要完整得多。"
+            "接下来，让真正踩过这个坑的人接手。我们继续帮你盯着，一有回应就通知你。"
+        )
+        pending = "求助帖自动生成还在路上（下一步就做）——现在先把现场现象补一条，等材料齐了，我们替你发。"
+
+    if round_n >= 3:
+        nxt = {"type": "info", "label": "补一条现场现象", "hint": "越具体，越容易被回答"}
+    elif round_n == 2:
+        nxt = {
+            "type": "retry",
+            "label": "再换一条路",
+            "hint": f"已排除 {len(excluded)} 条，方向比刚才更窄了",
+        }
+    else:
+        nxt = {
+            "type": "retry",
+            "label": "换个思路再来一版",
+            "hint": "AI 会避开刚走过的这条路",
+        }
+
+    avoid, seen = [], set()
+    for b in list(tried_branches or []):
+        if b and b not in seen:
+            seen.add(b)
+            avoid.append(b)
+
+    return {
+        "stage": "verdict",
+        "round": round_n,
+        "attribution": attr,
+        "attribution_label": a["label"],
+        "headline": a["headline"],
+        "detail": a["detail"],
+        "learned": learned,
+        "lead": lead,
+        "excluded": excluded,
+        "remaining": a["remaining"],
+        "next": nxt,
+        "note": note,
+        "pending": pending,
+        "avoid": avoid,
+    }

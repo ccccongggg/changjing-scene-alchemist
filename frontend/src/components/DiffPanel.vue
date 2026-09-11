@@ -32,7 +32,8 @@
     </div>
 
     <div class="diff__block">
-      <h4 class="diff__title diff__title--fire">🔥 照搬风险</h4>
+      <h4 class="diff__title diff__title--done">✓ 已替你避开的坑</h4>
+      <p class="diff__risk-hint">AI 已经在给你的方案里，把这些逐条改掉了。</p>
       <ul class="diff__risk">
         <li v-for="(r, i) in data.risks" :key="i">{{ r }}</li>
       </ul>
@@ -62,8 +63,14 @@ defineProps({ data: { type: Object, required: true } })
 .diff__title--warn {
   color: var(--zh-blue);
 }
-.diff__title--fire {
-  color: #e8590c;
+.diff__title--done {
+  color: #0f9d63;
+}
+.diff__risk-hint {
+  margin: -4px 0 10px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-3);
 }
 .diff__same,
 .diff__risk {

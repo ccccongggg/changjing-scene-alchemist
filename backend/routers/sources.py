@@ -4,9 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from ai_engine import ask_question, rediagnose, to_json
 from database import SessionLocal, get_db
-from models import Adaptation, SourcePost
-from schemas import AdaptationOut, SourcePostOut
+from models import Adaptation, Feedback, SourcePost
+from schemas import AdaptationOut, FeedbackIn, SourcePostOut
 from seed import seed_adaptations, seed_posts
 
 router = APIRouter()
@@ -92,3 +93,119 @@ def delete_adaptation(aid: int, db: Session = Depends(get_db)):
     db.delete(row)
     db.commit()
     return {"code": 0, "data": {"id": aid}, "msg": "ok"}
+
+
+# ---------------------------------------------------------------------------
+# 复诊（版本 1.1 · P0）
+# ---------------------------------------------------------------------------
+# 两阶段共用一个端点：
+#   1) 只带 result/block_type，不带 user_note → 返回 AI 的「归因追问」一句（不落库）
+#   2) 带上 user_note → 落库，返回三分归因 + 「已排除 / 剩余可试」棋盘 + 下一步
+# 响应是**直出 dict**（无信封），前端 unwrap 已兼容。
+
+def _load_json(s):
+    try:
+        return json.loads(s) if s else {}
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def _chain_ids(db: Session, aid: int) -> list:
+    """顺着 parent_id 往上找，返回整条复诊链的方案 id（新→旧）。"""
+    ids, cur, guard = [], aid, 0
+    while cur and guard < 50:
+        ids.append(cur)
+        row = db.query(Adaptation).filter(Adaptation.id == cur).first()
+        if not row:
+            break
+        cur = row.parent_id
+        guard += 1
+    return ids
+
+
+@router.post("/adaptations/{aid}/feedback")
+def submit_feedback(aid: int, body: FeedbackIn, db: Session = Depends(get_db)):
+    row = db.query(Adaptation).filter(Adaptation.id == aid).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="adaptation not found")
+
+    result = (body.result or "").strip()
+    if result not in ("done", "stuck"):
+        raise HTTPException(status_code=400, detail="result must be 'done' or 'stuck'")
+
+    chain = _chain_ids(db, aid)
+    past = (
+        db.query(Feedback)
+        .filter(Feedback.adaptation_id.in_(chain))
+        .order_by(Feedback.round.asc())
+        .all()
+    )
+
+    # ---- 做成了：不追问，直接记下并给用户一个身份升级 ----
+    if result == "done":
+        rec = Feedback(
+            adaptation_id=aid,
+            round=len(past) + 1,
+            result="done",
+            branch=row.branch,
+            ai_reply_json=to_json({"stage": "done"}),
+        )
+        db.add(rec)
+        db.commit()
+        return {
+            "stage": "done",
+            "round": len(past) + 1,
+            "title": "记下了 ✓",
+            "message": "这条解法已经留在原帖的场景应用网上——下一个人遇到同样的处境，不用从头撞一遍墙。",
+            "sub": "你刚刚给后来者立了一个路标。",
+        }
+
+    stuck_past = [r for r in past if r.result == "stuck"]
+    round_n = len(stuck_past) + 1
+    solution = _load_json(row.solution_json)
+
+    # ---- 阶段一：只要 AI 的归因追问（还没到出结论的时候） ----
+    if not (body.user_note or "").strip():
+        lead = ""
+        if round_n >= 2:
+            lead = (
+                f"连续 {round_n} 条路都不通——这恰恰说明你的场景比原帖特殊得多。"
+                "AI 正在换思路：从「照搬原帖」切换到「基于你的约束重新设计」。"
+            )
+        return {
+            "stage": "ask",
+            "round": round_n,
+            "lead": lead,
+            "question": ask_question(body.block_type or "", body.block_step, solution),
+            "placeholder": "就写一句，比如「报 ORE 溢出，缓冲区好像没进中断」",
+            "reassure": "别急。排除一个方向，也是进展。",
+        }
+
+    # ---- 阶段二：出归因结论 ----
+    prev_rounds = [{"round": r.round, "attribution": r.attribution} for r in stuck_past]
+    tried = [r.branch for r in stuck_past]
+    for i in chain:
+        a = db.query(Adaptation).filter(Adaptation.id == i).first()
+        if a and a.branch:
+            tried.append(a.branch)
+
+    verdict = rediagnose(
+        round_n, body.block_type or "", body.block_step, body.user_note.strip(),
+        prev_rounds, tried,
+    )
+
+    rec = Feedback(
+        adaptation_id=aid,
+        round=round_n,
+        result="stuck",
+        block_type=body.block_type,
+        block_step=body.block_step,
+        user_note=body.user_note.strip(),
+        attribution=verdict["attribution"],
+        branch=row.branch,
+        ai_question=verdict.get("headline", ""),
+        ai_reply_json=to_json(verdict),
+    )
+    db.add(rec)
+    db.commit()
+    return verdict

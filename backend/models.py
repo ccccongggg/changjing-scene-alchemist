@@ -43,4 +43,28 @@ class Adaptation(Base):
     diff_json = Column(Text)                    # A2 差异分析
     solution_json = Column(Text)                # A3 方案迁移
     provider = Column(String)                   # zhida / external / mock
+    branch = Column(String)                     # 这次走的方案分支（复诊换思路时要避开它）
+    parent_id = Column(Integer)                 # 复诊链：指向被复诊的那一版方案
+    created_at = Column(String, default=_now)
+
+
+class Feedback(Base):
+    """一次「复诊」：用户试过方案之后的反馈 + AI 归因。
+
+    记录的是**排除过程**，不是失败——每一条都让棋盘变小一圈。
+    """
+
+    __tablename__ = "feedbacks"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    adaptation_id = Column(Integer, nullable=False)
+    round = Column(Integer, default=1)          # 第几次复诊（同一方案累加）
+    result = Column(String, nullable=False)     # done / stuck
+    block_type = Column(String)                 # step_error / phenomenon / other
+    block_step = Column(Integer)                # 卡在第 N 步（block_type=step_error 时）
+    user_note = Column(Text)                    # 用户补充的一句
+    attribution = Column(String)                # param_wrong / scene_mismatch / constraint_conflict
+    branch = Column(String)                     # 当时走的方案分支快照（下次换思路要避开）
+    ai_question = Column(Text)                  # 归因追问的那句
+    ai_reply_json = Column(Text)                # 棋盘式回复 JSON（已排除 / 剩余可试 / 下一步）
     created_at = Column(String, default=_now)

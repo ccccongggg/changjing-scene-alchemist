@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import Adaptation, SourcePost
 from schemas import AdaptExtractIn, AdaptExtractOut, AdaptRunIn, AdaptRunOut, AdaptationOut
-from ai_engine import deconstruct, generate, to_json
+from ai_engine import deconstruct, generate, resolve_branch, to_json, _detect_type
 
 router = APIRouter()
 
@@ -26,8 +26,13 @@ def run(body: AdaptRunIn, db: Session = Depends(get_db)):
     if not post:
         raise HTTPException(status_code=404, detail="post not found")
 
+    avoid = [a for a in (body.avoid or []) if a]
     origin, diff, solution, provider = generate(
-        post, body.scene_tag or "", body.user_scene, body.user_constraint or ""
+        post, body.scene_tag or "", body.user_scene, body.user_constraint or "", avoid
+    )
+    # 记下这一版走的分支：用户下次「卡住了」，复诊才知道该避开哪条路
+    branch = resolve_branch(
+        _detect_type(post), body.user_scene, body.user_constraint or "", avoid
     )
 
     rec = Adaptation(
@@ -39,6 +44,8 @@ def run(body: AdaptRunIn, db: Session = Depends(get_db)):
         diff_json=to_json(diff),
         solution_json=to_json(solution),
         provider=provider,
+        branch=branch,
+        parent_id=body.parent_id,
     )
     db.add(rec)
     db.commit()
