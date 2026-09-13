@@ -29,3 +29,5 @@ export const runAdapt = (payload) => api.post('/adapt/run', payload).then(unwrap
 // 复诊：无 user_note → 拿 AI 归因追问；有 user_note → 拿归因结论
 export const submitFeedback = (id, payload) =>
   api.post(`/adaptations/${id}/feedback`, payload).then(unwrap)
+// 星图：把「一帖千面」的场景应用网折算成可画的结构（只读）
+export const getStarMap = () => api.get('/starmap').then(unwrap)

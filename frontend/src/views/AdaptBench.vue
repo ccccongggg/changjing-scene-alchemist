@@ -1,9 +1,9 @@
 <template>
-  <div class="bench">
+  <div :class="['bench', { 'bench--compact': props.mode === 'compact' }]">
     <div v-if="error" class="bench__error">{{ error }}</div>
 
     <template v-else>
-      <div class="bench__top">
+      <div v-if="props.mode === 'page'" class="bench__top">
         <router-link to="/bench" class="bench__back">← 收藏台</router-link>
         <h1 v-if="source" class="bench__title">{{ source.title }}</h1>
         <span v-if="source" class="lk-chip lk-chip--muted">{{ typeLabel(source.content_type) }}</span>
@@ -14,7 +14,7 @@
       </div>
 
       <template v-else>
-        <OriginCard v-if="origin" :data="origin" />
+        <OriginCard v-if="origin && props.mode === 'page'" :data="origin" />
 
         <SceneForm v-if="phase === 'form'" :chips="demoChips" @submit="onSubmit" />
 
@@ -28,7 +28,7 @@
             <span class="bench__net-prov">· 由 {{ providerLabel }} 生成</span>
           </div>
 
-          <section class="bench__graph lk-card">
+          <section v-if="props.mode === 'page'" class="bench__graph lk-card">
             <h3 class="bench__graph-title">场景应用网 · 同帖千面</h3>
             <ScenarioGraph
               :post-title="source?.title"
@@ -48,14 +48,17 @@
           />
 
           <div class="bench__ops">
-            <router-link to="/library" class="lk-btn lk-btn--primary">
-              存入方案库 ✓ 查看
-            </router-link>
+            <button class="lk-btn lk-btn--primary" @click="reuse">
+              {{ props.mode === 'compact' ? '换个场景再炼' : '换个场景再炼成（一帖两吃）' }}
+            </button>
             <button class="lk-btn lk-btn--ghost" @click="copyAll">
               {{ copied ? '已复制' : '复制全文' }}
             </button>
+            <router-link v-if="props.mode === 'page'" to="/library" class="lk-btn lk-btn--primary">
+              存入方案库 ✓ 查看
+            </router-link>
             <a
-              v-if="source && source.url"
+              v-if="props.mode === 'page' && source && source.url"
               :href="source.url"
               target="_blank"
               rel="noopener"
@@ -63,8 +66,8 @@
             >
               打开原帖 ↗
             </a>
-            <button class="lk-btn lk-btn--ghost" @click="reuse">
-              换个场景再炼成（一帖两吃）
+            <button v-if="props.mode === 'compact'" class="lk-btn lk-btn--ghost" @click="emit('close')">
+              关闭
             </button>
           </div>
         </template>
@@ -82,7 +85,11 @@ import DiffPanel from '../components/DiffPanel.vue'
 import SolutionPanel from '../components/SolutionPanel.vue'
 import ScenarioGraph from '../components/ScenarioGraph.vue'
 
-const props = defineProps({ id: { type: [String, Number], required: true } })
+const props = defineProps({
+  id: { type: [String, Number], required: true },
+  mode: { type: String, default: 'page' } // 'page' | 'compact'
+})
+const emit = defineEmits(['created', 'close'])
 
 const source = ref(null)
 const origin = ref(null)
@@ -140,6 +147,24 @@ const DEMO_CHIPS = {
       scene: '工厂喷胶机小型三轴龙门，步进电机驱动、负载 1.5kg、行程 400mm。',
       constraint: '工厂连续作业，断电后位置不能丢'
     }
+  ],
+  // ↓ 生活类：全站统一用「学 AI 产品」这一个例子（一帖三吃）
+  4: [
+    {
+      tag: '上班族版',
+      scene: '我在上班，公司电脑不让装任何软件，只能用网页版，而且工作内容不能外传，只有午休 30 分钟。',
+      constraint: '时间只有碎片，不能装软件，内容要脱敏'
+    },
+    {
+      tag: '学生版',
+      scene: '我是学生，只有免费额度，每天 20 次用完就得等明天，想拿它改论文、备考、讲错题。',
+      constraint: '交上去要像自己写的，还得过查重'
+    },
+    {
+      tag: '家长版',
+      scene: '我是家长，完全零基础，「提示词」今天是第一次听说，想用它辅导孩子作业，但不想让它直接给答案。',
+      constraint: '要孩子真的懂，不是答案到手；孩子容易跑题'
+    }
   ]
 }
 const demoChips = computed(
@@ -182,6 +207,7 @@ const onSubmit = async (payload) => {
     phase.value = 'result'
 
     currentId.value = res.adaptation.id
+    emit('created', res.adaptation)
     await refreshNet()
   } catch (e) {
     error.value = '生成失败：' + (e?.message || e)
@@ -273,6 +299,18 @@ onUnmounted(() => stageTimer && clearInterval(stageTimer))
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+.bench--compact {
+  max-width: none;
+  margin: 0;
+  gap: 14px;
+}
+.bench--compact .bench__loading {
+  padding: 28px 16px;
+}
+.bench--compact .bench__ops {
+  padding: 4px 0 0;
+  justify-content: flex-start;
 }
 .bench__top {
   display: flex;

@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from database import init_db
 from routers import sources
 from routers import adapt
+from routers import starmap
 
 # 前端构建产物：优先 backend/site（部署包），其次 ../frontend/dist（本地开发）
 _CANDIDATE_DIRS = [
@@ -41,6 +42,7 @@ app.add_middleware(
 
 app.include_router(sources.router, prefix="/api")
 app.include_router(adapt.router, prefix="/api")
+app.include_router(starmap.router, prefix="/api")
 
 
 @app.get("/api/health")

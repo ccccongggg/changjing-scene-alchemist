@@ -9,6 +9,7 @@
         <nav class="nav">
           <router-link to="/" class="nav__link" exact-active-class="is-active">首页</router-link>
           <router-link to="/bench" class="nav__link" active-class="is-active">收藏台</router-link>
+          <router-link to="/starmap" class="nav__link" active-class="is-active">星图</router-link>
           <router-link to="/library" class="nav__link" active-class="is-active">方案库</router-link>
           <router-link to="/adapt/1" class="nav__link" active-class="is-active">场景工坊</router-link>
         </nav>
@@ -78,6 +79,7 @@ const isHome = computed(() => route.path === '/')
 const navLinks = [
   { to: '/', label: '首页', exact: true },
   { to: '/bench', label: '收藏台' },
+  { to: '/starmap', label: '星图' },
   { to: '/library', label: '方案库' },
   { to: '/adapt/1', label: '场景工坊' }
 ]

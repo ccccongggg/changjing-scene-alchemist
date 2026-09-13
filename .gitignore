@@ -23,3 +23,12 @@ backend/.server.log
 
 # 移动端适配验证截图（临时产物）
 _shots/
+
+# 部署副本（由 frontend 构建生成，非源码）
+backend/site/
+
+# 验证 / 临时产物（真机截图、agent-browser 快照等）
+snap*.txt
+starmap_*.png
+verify_starmap_create.png
+_createmode_form.png

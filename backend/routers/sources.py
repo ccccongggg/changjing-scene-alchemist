@@ -26,8 +26,14 @@ def do_seed():
 
 @router.get("/sources")
 def list_sources(db: Session = Depends(get_db)):
-    posts = db.query(SourcePost).all()
-    data = [SourcePostOut.model_validate(p, from_attributes=True).model_dump() for p in posts]
+    # 收藏时间新的在前（NULL 视为最旧）：新增的生活类演示帖会排在最前面，
+    # 不懂技术的评审/路人一进来先看到「红烧肉菜谱」而不是 STM32。
+    rows = (
+        db.query(SourcePost)
+        .order_by(SourcePost.fav_time.desc().nullslast(), SourcePost.id.asc())
+        .all()
+    )
+    data = [SourcePostOut.model_validate(p, from_attributes=True).model_dump() for p in rows]
     return {"code": 0, "data": data, "msg": "ok"}
 
 
