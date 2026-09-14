@@ -60,3 +60,15 @@ class AdaptRunOut(BaseModel):
     origin: dict
     diff: dict
     solution: dict
+
+
+class SceneSummarizeIn(BaseModel):
+    raw: str                       # 原始文本 / 语音转写 / 图片文件名或占位描述
+    input_type: str = "text"      # text | voice | image
+    hint: Optional[str] = None    # 可选提示，如原帖领域关键词
+
+
+class SceneSummarizeOut(BaseModel):
+    scene_tag: str
+    user_scene: str
+    user_constraint: str

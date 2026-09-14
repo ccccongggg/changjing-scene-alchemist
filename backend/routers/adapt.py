@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from models import Adaptation, SourcePost
-from schemas import AdaptExtractIn, AdaptExtractOut, AdaptRunIn, AdaptRunOut, AdaptationOut
-from ai_engine import deconstruct, generate, resolve_branch, to_json, _detect_type
+from schemas import AdaptExtractIn, AdaptExtractOut, AdaptRunIn, AdaptRunOut, AdaptationOut, SceneSummarizeIn, SceneSummarizeOut
+from ai_engine import deconstruct, generate, resolve_branch, to_json, _detect_type, summarize_scene
 
 router = APIRouter()
 
@@ -53,3 +53,10 @@ def run(body: AdaptRunIn, db: Session = Depends(get_db)):
 
     adaptation = AdaptationOut.model_validate(rec, from_attributes=True).model_dump()
     return {"adaptation": adaptation, "origin": origin, "diff": diff, "solution": solution}
+
+
+@router.post("/scene/summarize", response_model=SceneSummarizeOut)
+def summarize(body: SceneSummarizeIn):
+    """把文字 / 语音转写 / 图片占位描述整理成结构化场景三件套。"""
+    out = summarize_scene(body.raw, body.input_type or "text", body.hint)
+    return out

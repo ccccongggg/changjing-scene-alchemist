@@ -290,6 +290,17 @@
             </template>
           </div>
           <p v-if="active.rounds" class="fb-note">这一版已经复诊过 {{ active.rounds }} 次 —— 每排除一个方向，棋盘就小一圈。</p>
+
+          <div class="sec">⑤ 继续拆解</div>
+          <router-link
+            v-if="active && active.id"
+            :to="{ name: 'steps', params: { sceneId: active.id }, query: { step: 1 } }"
+            class="fb-btn solve"
+            style="display:inline-flex; text-decoration:none;"
+          >
+            查看「{{ active.name }}」解决步骤星图 →
+          </router-link>
+          <p v-else class="hint">当前处境暂未生成步骤星图。</p>
         </template>
 
         <!-- 复诊：① 卡在哪一步 -->
@@ -597,9 +608,9 @@ const nodes = computed(() => {
       r: r2,
       x: CX + r2 * cos,
       y: CY + r2 * Math.sin(rad) * SQUASH,
-      dx: cos * 16,
-      dy: Math.sin(rad) * 16 * SQUASH,
-      anchor: cos > 0.18 ? 'start' : cos < -0.18 ? 'end' : 'middle'
+      dx: cos >= 0 ? 20 : -20,
+      dy: 0,
+      anchor: cos >= 0 ? 'start' : 'end'
     }
   })
 })

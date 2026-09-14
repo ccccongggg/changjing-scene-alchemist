@@ -31,3 +31,6 @@ export const submitFeedback = (id, payload) =>
   api.post(`/adaptations/${id}/feedback`, payload).then(unwrap)
 // 星图：把「一帖千面」的场景应用网折算成可画的结构（只读）
 export const getStarMap = () => api.get('/starmap').then(unwrap)
+// 多模态输入 → 结构化场景
+export const summarizeScene = (payload) =>
+  api.post('/scene/summarize', payload).then(unwrap)

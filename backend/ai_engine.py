@@ -11,6 +11,7 @@
 
 import copy
 import json
+import re
 from functools import lru_cache
 
 from config import effective_provider
@@ -1338,3 +1339,74 @@ def rediagnose(
         "pending": pending,
         "avoid": avoid,
     }
+
+
+# ---------------------------------------------------------------------------
+# 多模态输入 → 结构化场景（MVP 演示版）
+# ---------------------------------------------------------------------------
+# 把文字 / 语音转写 / 图片占位描述整理成 {scene_tag, user_scene, user_constraint}
+# 真实版本可替换为 LLM/VLM 调用；当前按关键词做快速结构化，保证断网可演示。
+
+_SCENE_TAG_KEYWORDS = {
+    "上班族版": ["上班", "公司", "午休", "网页版", "不能装", "碎片", "开会", "老板"],
+    "学生版": ["学生", "论文", "备考", "查重", "宿舍", "免费额度", "考研", "作业"],
+    "家长版": ["家长", "孩子", "辅导", "作业", "小学", "初中", "零基础", "小白"],
+    "串口场景": ["串口", "uart", "stm32", "波特率", "dma", "收发", "丢帧", "115200"],
+    "PCB 场景": ["pcb", "电源", "线宽", "电流", "铜厚", "走线", "过孔"],
+    "机器人场景": ["机械臂", "舵机", "龙门", "步进", "电机", "运动学", "关节"],
+}
+
+_CONSTRAINT_KEYWORDS = [
+    # 禁止 / 否定
+    "不能", "不许", "不让", "无法", "没法", "不可以", "不允许", "禁止",
+    # 强制 / 限定
+    "必须", "只能", "只有", "定死了", "换不了",
+    # 时间紧
+    "午休", "分钟", "小时", "时间紧", "赶时间", "来不及", "天内", "临时", "紧急",
+    # 资源 / 成本
+    "预算", "成本", "太贵", "没预算", "工期",
+    # 物理 / 环境限制
+    "空间", "散热", "负载", "重量", "精度", "距离", "干扰", "保密",
+]
+
+
+def summarize_scene(raw: str, input_type: str = "text", hint: str = None) -> dict:
+    """把原始输入整理成结构化场景三件套，供生成方案前使用。"""
+    text = (raw or "").strip()
+    if not text:
+        return {"scene_tag": "自定义场景", "user_scene": "", "user_constraint": ""}
+
+    # 1. 拆句（同时支持中文句末标点与逗号/顿号切分，避免整段被当成一句）
+    sentences = [s.strip() for s in re.split(r'[，,。；;．、！!？?\n\t]', text) if s.strip()]
+    if not sentences:
+        sentences = [text]
+
+    # 2. 区分「场景」和「约束」
+    constraint_sents = [
+        s for s in sentences
+        if any(k in s for k in _CONSTRAINT_KEYWORDS)
+    ]
+    scene_sents = [s for s in sentences if s not in constraint_sents]
+
+    # 3. 组合成结构化文本
+    user_scene = "；".join(scene_sents[:3]) if scene_sents else text
+    user_constraint = "；".join(constraint_sents[:3]) if constraint_sents else ""
+
+    # 4. 场景标签识别
+    lower = text.lower()
+    tag = None
+    for tag_name, kws in _SCENE_TAG_KEYWORDS.items():
+        if any(k.lower() in lower for k in kws):
+            tag = tag_name
+            break
+    if not tag:
+        tag = hint or "自定义场景"
+
+    # 5. 图片输入加提示前缀（真实 VLM 尚未接入时，引导用户核对）
+    if input_type == "image":
+        if not user_scene.startswith("图片"):
+            user_scene = f"图片识别：{user_scene}"
+        if not user_constraint:
+            user_constraint = "请核对图片中读到的约束是否完整"
+
+    return {"scene_tag": tag, "user_scene": user_scene, "user_constraint": user_constraint}

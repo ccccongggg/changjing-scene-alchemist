@@ -16,7 +16,7 @@
       <template v-else>
         <OriginCard v-if="origin && props.mode === 'page'" :data="origin" />
 
-        <SceneForm v-if="phase === 'form'" :chips="demoChips" @submit="onSubmit" />
+        <SceneForm v-if="phase === 'form'" :chips="demoChips" :running="phase === 'running'" @submit="onSubmit" />
 
         <div v-else-if="phase === 'running'" class="bench__loading">
           <span class="bench__spinner" /> {{ runStage }}
