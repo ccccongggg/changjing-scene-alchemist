@@ -129,13 +129,13 @@ defineEmits(['rediagnose'])
 }
 .sol__code {
   margin: 0;
-  background: #f6f8fa;
+  background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 14px 16px;
   font-size: 12.5px;
   line-height: 1.6;
-  color: #24292f;
+  color: var(--text);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;

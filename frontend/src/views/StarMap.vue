@@ -42,24 +42,24 @@
           <defs>
             <!-- 星核光晕：最外那层冷色柔光，到边缘必须完全透明（不能有硬边），否则白底上会看到一个脏圆盘 -->
             <radialGradient id="sunHalo">
-              <stop offset="0%" stop-color="#cfe3ff" stop-opacity="0.5" />
-              <stop offset="45%" stop-color="#e3eefc" stop-opacity="0.22" />
-              <stop offset="100%" stop-color="#eef4fd" stop-opacity="0" />
+              <stop offset="0%" stop-color="#5967f2" stop-opacity="0.4" />
+              <stop offset="45%" stop-color="#5967f2" stop-opacity="0.18" />
+              <stop offset="100%" stop-color="#0b1020" stop-opacity="0" />
             </radialGradient>
             <radialGradient id="sunGrad">
-              <stop offset="0%" stop-color="#e7f1fd" />
-              <stop offset="62%" stop-color="#f2f7fd" />
-              <stop offset="100%" stop-color="#fbfcfd" stop-opacity="0.2" />
+              <stop offset="0%" stop-color="#4a3a1a" />
+              <stop offset="62%" stop-color="#2e2410" />
+              <stop offset="100%" stop-color="#0b1020" stop-opacity="0.2" />
             </radialGradient>
             <radialGradient id="coreGrad">
-              <stop offset="0%" stop-color="#f6faff" />
-              <stop offset="58%" stop-color="#ecf3fc" />
-              <stop offset="100%" stop-color="#d9e7f8" />
+              <stop offset="0%" stop-color="#f0d9a8" />
+              <stop offset="58%" stop-color="#dbb46a" />
+              <stop offset="100%" stop-color="#8a6a2e" />
             </radialGradient>
             <!-- 星核高光：偏左上的一团白光，让核面看起来像个球而不是一块贴纸 -->
             <radialGradient id="coreHi">
-              <stop offset="0%" stop-color="#ffffff" stop-opacity="0.92" />
-              <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+              <stop offset="0%" stop-color="#fff6e0" stop-opacity="0.5" />
+              <stop offset="100%" stop-color="#fff6e0" stop-opacity="0" />
             </radialGradient>
             <filter id="sunBlur"><feGaussianBlur :stdDeviation="SUN_R * 0.15" /></filter>
           </defs>
@@ -114,9 +114,9 @@
               <circle class="sun-glow" :cx="CX" :cy="CY" :r="(SUN_R * 1.22).toFixed(1)" fill="url(#sunGrad)" filter="url(#sunBlur)" />
               <!-- 星球环 · 后半：先画，让核体压住它的中段，只露出左右两翼 -->
               <g class="sun-ring back" :transform="`translate(${CX} ${CY}) rotate(-16)`">
-                <path :d="SUN_RING.back" fill="none" stroke="#c9d9ee" :stroke-width="SUN_RING.w" opacity="0.75" />
+                <path :d="SUN_RING.back" fill="none" stroke="#3d4a78" :stroke-width="SUN_RING.w" opacity="0.75" />
               </g>
-              <circle class="varbg" :cx="CX" :cy="CY" :r="SUN_R" fill="none" stroke="#e9f0fa" stroke-width="3" />
+              <circle class="varbg" :cx="CX" :cy="CY" :r="SUN_R" fill="none" stroke="#1c2442" stroke-width="3" />
               <circle
                 class="varc"
                 :cx="CX"
@@ -130,7 +130,7 @@
                 :stroke-dasharray="`${SUN_ARC.len.toFixed(1)} ${(SUN_ARC.c - SUN_ARC.len).toFixed(1)}`"
                 :opacity="SUN_ARC.len > 0.6 ? 1 : 0"
               />
-              <circle class="corec" :cx="CX" :cy="CY" :r="(SUN_R * 0.83).toFixed(1)" fill="url(#coreGrad)" stroke="#dfe9f7" stroke-width="1" />
+              <circle class="corec" :cx="CX" :cy="CY" :r="(SUN_R * 0.83).toFixed(1)" fill="url(#coreGrad)" stroke="#6b5424" stroke-width="1" />
               <circle
                 class="core-hi"
                 :cx="(CX - SUN_R * 0.3).toFixed(1)"
@@ -140,7 +140,7 @@
               />
               <!-- 星球环 · 前半：压在核面前面（从左下掠到右下），Saturn 感的来源 -->
               <g class="sun-ring front" :transform="`translate(${CX} ${CY}) rotate(-16)`">
-                <path :d="SUN_RING.front" fill="none" stroke="#a9c2e6" :stroke-width="SUN_RING.w" opacity="0.9" />
+                <path :d="SUN_RING.front" fill="none" stroke="#8a97d8" :stroke-width="SUN_RING.w" opacity="0.9" />
               </g>
               <g :transform="`translate(${CX} ${CY}) scale(${inv})`">
                 <!-- 标题不再塞进星核；顶部 chips 与右侧面板已展示完整标题 -->
@@ -556,8 +556,8 @@ import AdaptBench from './AdaptBench.vue'
 import { LAYOUT_DEFAULTS, bboxAt, buildDraftNode, buildLayout, starLabel, starPath } from './starmapLayout'
 
 /* ---------------- 常量 ---------------- */
-const STAR_ON = '#056de8'
-const STAR_OFF = '#f0a03c'
+const STAR_ON = '#43c6a6'
+const STAR_OFF = '#dbb46a'
 const DEPTH_GROUPS = [
   [1, '改参数'],
   [2, '动结构'],
@@ -1259,7 +1259,7 @@ function focusScene(n) {
   min-width: 0;
   height: calc(100vh - 250px);
   min-height: 540px;
-  background: radial-gradient(130% 96% at 50% 45%, #ffffff 0%, #fafcfe 55%, #f5f9fd 100%);
+  background: radial-gradient(130% 96% at 50% 45%, #131a33 0%, #0e1428 55%, #0b1020 100%);
   border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
@@ -1292,7 +1292,7 @@ function focusScene(n) {
 /* svg */
 .orbit {
   fill: none;
-  stroke: #cbd6e4;
+  stroke: #2a3358;
   stroke-width: 1.1;
   opacity: 0.9;
   stroke-dasharray: 2 6;
@@ -1309,14 +1309,14 @@ function focusScene(n) {
   stroke-width: 2;
 }
 .xlink {
-  stroke: #c6ccd6;
+  stroke: #2a3358;
   stroke-width: 1;
   opacity: 0.55;
   stroke-dasharray: 4 4;
   transition: opacity 0.18s ease;
 }
 .xlink.parent {
-  stroke: #f0a03c;
+  stroke: #dbb46a;
   stroke-width: 1.4;
   opacity: 0.9;
   stroke-dasharray: 5 4;
@@ -1335,7 +1335,7 @@ function focusScene(n) {
   stroke-linejoin: round;
 }
 .star.on {
-  filter: drop-shadow(0 1px 3px rgba(5, 109, 232, 0.4));
+  filter: drop-shadow(0 1px 3px rgba(125, 137, 255, 0.4));
 }
 .star.tw {
   animation: tw 5s ease-in-out infinite;
@@ -1351,7 +1351,7 @@ function focusScene(n) {
 }
 /* 临时新星：创建中，蓝色虚线 + 呼吸，区别于已收录的星 */
 .node.draft .star {
-  fill: #ffffff;
+  fill: #131a33;
   stroke: var(--zh-blue);
   stroke-width: 2;
   stroke-dasharray: 3 3;
@@ -1372,9 +1372,9 @@ function focusScene(n) {
 .lbl {
   font-size: 14px;
   font-weight: 600;
-  fill: #16181c;
+  fill: #f4f6fa;
   paint-order: stroke;
-  stroke: #fbfcfd;
+  stroke: #0b1020;
   stroke-width: 5.5;
   stroke-linejoin: round;
   transition: font-size 0.2s;
@@ -1388,16 +1388,16 @@ function focusScene(n) {
 }
 .node-detail {
   font-size: 11.5px;
-  fill: #6f7b8f;
+  fill: #9aa5c4;
   paint-order: stroke;
-  stroke: #fbfcfd;
+  stroke: #0b1020;
   stroke-width: 5;
   stroke-linejoin: round;
 }
 .core-sub {
   font-size: 18px;
   font-weight: 600;
-  fill: #174a86;
+  fill: #4a3a14;
 }
 .core-num {
   font-size: 15px;
@@ -1406,7 +1406,7 @@ function focusScene(n) {
 }
 .core-hint {
   font-size: 12px;
-  fill: #8590a6;
+  fill: #6b5424;
 }
 .corehit {
   cursor: pointer;
@@ -1449,7 +1449,7 @@ function focusScene(n) {
   background: #d8e8fd;
   border-color: var(--zh-blue);
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(5, 109, 232, 0.14);
+  box-shadow: 0 4px 14px rgba(125, 137, 255, 0.14);
 }
 .eb-ico {
   width: 26px;
@@ -1458,10 +1458,10 @@ function focusScene(n) {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: #fff;
-  color: var(--zh-blue);
+  background: var(--surface-2);
+  color: var(--zh-blue-2);
   font-size: 13px;
-  box-shadow: 0 1px 4px rgba(5, 109, 232, 0.18);
+  box-shadow: 0 1px 4px rgba(125, 137, 255, 0.18);
 }
 .eb-tx {
   min-width: 0;
@@ -1525,8 +1525,8 @@ function focusScene(n) {
   height: 7px;
   border-radius: 50%;
   flex: none;
-  background: #fff;
-  border: 1.6px solid #f0a03c;
+  background: var(--surface-2);
+  border: 1.6px solid #dbb46a;
 }
 .ec-dot.v {
   background: var(--zh-blue);
@@ -1630,7 +1630,7 @@ function focusScene(n) {
   flex-direction: column;
   gap: 7px;
   padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(17, 23, 44, 0.88);
   border: 1px solid var(--border);
   border-radius: 8px;
   pointer-events: none;
@@ -1655,7 +1655,7 @@ function focusScene(n) {
   flex: none;
 }
 .lg.sun i {
-  background: radial-gradient(circle at 34% 30%, #fff6e2, #f0b45c);
+  background: radial-gradient(circle at 34% 30%, #f0d9a8, #dbb46a);
   box-shadow: 0 0 5px rgba(240, 180, 92, 0.65);
 }
 .lg.sun em {
@@ -1668,8 +1668,8 @@ function focusScene(n) {
   background: var(--zh-blue);
 }
 .lg.off i {
-  background: #fff;
-  border: 1.6px solid #f0a03c;
+  background: var(--surface-2);
+  border: 1.6px solid #dbb46a;
 }
 .lg-line.depth {
   gap: 0;
@@ -1695,7 +1695,7 @@ function focusScene(n) {
   color: var(--text-3);
   line-height: 1;
   white-space: nowrap;
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(17, 23, 44, 0.86);
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 7px 14px;
@@ -1710,7 +1710,7 @@ function focusScene(n) {
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 5px 12px;
-  background: #fff;
+  background: var(--surface);
 }
 .zoomtag b {
   color: var(--zh-blue);
@@ -1728,7 +1728,7 @@ function focusScene(n) {
   height: 32px;
   border-radius: 6px;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--surface-2);
   color: var(--text-2);
   font-size: 15px;
   line-height: 1;
@@ -1759,7 +1759,7 @@ function focusScene(n) {
   transition: 0.3s;
   pointer-events: none;
   white-space: nowrap;
-  box-shadow: 0 6px 20px rgba(5, 109, 232, 0.25);
+  box-shadow: 0 6px 20px rgba(125, 137, 255, 0.25);
 }
 .toast.on {
   opacity: 1;

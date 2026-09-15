@@ -21,24 +21,24 @@
           <defs>
             <!-- 核晕：最外那层冷色柔光，边缘必须透明，否则白底上看到的是一个脏圆盘 -->
             <radialGradient id="sunHalo">
-              <stop offset="0%" stop-color="#cfe3ff" stop-opacity="0.5" />
-              <stop offset="45%" stop-color="#e3eefc" stop-opacity="0.22" />
-              <stop offset="100%" stop-color="#eef4fd" stop-opacity="0" />
+              <stop offset="0%" stop-color="#5967f2" stop-opacity="0.4" />
+              <stop offset="45%" stop-color="#5967f2" stop-opacity="0.18" />
+              <stop offset="100%" stop-color="#0b1020" stop-opacity="0" />
             </radialGradient>
             <radialGradient id="sunGrad">
-              <stop offset="0%" stop-color="#e7f1fd" />
-              <stop offset="62%" stop-color="#f2f7fd" />
-              <stop offset="100%" stop-color="#fbfcfd" stop-opacity="0.2" />
+              <stop offset="0%" stop-color="#4a3a1a" />
+              <stop offset="62%" stop-color="#2e2410" />
+              <stop offset="100%" stop-color="#0b1020" stop-opacity="0.2" />
             </radialGradient>
             <radialGradient id="coreGrad">
-              <stop offset="0%" stop-color="#f6faff" />
-              <stop offset="58%" stop-color="#ecf3fc" />
-              <stop offset="100%" stop-color="#d9e7f8" />
+              <stop offset="0%" stop-color="#f0d9a8" />
+              <stop offset="58%" stop-color="#dbb46a" />
+              <stop offset="100%" stop-color="#8a6a2e" />
             </radialGradient>
             <!-- 核体高光：偏左上的一团白光，让核面像个球而不是一块贴纸 -->
             <radialGradient id="coreHi">
-              <stop offset="0%" stop-color="#ffffff" stop-opacity="0.92" />
-              <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+              <stop offset="0%" stop-color="#fff6e0" stop-opacity="0.5" />
+              <stop offset="100%" stop-color="#fff6e0" stop-opacity="0" />
             </radialGradient>
             <filter id="sunBlur"><feGaussianBlur stdDeviation="10" /></filter>
           </defs>
@@ -56,15 +56,15 @@
               <circle id="sunGlow" class="sun-glow" cx="440" cy="400" r="86" fill="url(#sunGrad)" filter="url(#sunBlur)" />
               <!-- 星球环 · 后半：先画，让核体压住它的中段，只露左右两翼 -->
               <g id="sunRingBack" transform="translate(440 400) rotate(-16)">
-                <path d="" fill="none" stroke="#c9d9ee" stroke-width="3" opacity="0.75" />
+                <path d="" fill="none" stroke="#3d4a78" stroke-width="3" opacity="0.75" />
               </g>
-              <circle id="sunRing" cx="440" cy="400" r="70" fill="none" stroke="#e9f0fa" stroke-width="3" />
-              <circle id="sunArc" class="varc" cx="440" cy="400" r="70" fill="none" stroke="#056de8" stroke-width="3" stroke-linecap="round" transform="rotate(-90 440 400)" />
-              <circle id="sunCore" class="corec" cx="440" cy="400" r="58" fill="url(#coreGrad)" stroke="#dfe9f7" stroke-width="1" />
+              <circle id="sunRing" cx="440" cy="400" r="70" fill="none" stroke="#1c2442" stroke-width="3" />
+              <circle id="sunArc" class="varc" cx="440" cy="400" r="70" fill="none" stroke="#43c6a6" stroke-width="3" stroke-linecap="round" transform="rotate(-90 440 400)" />
+              <circle id="sunCore" class="corec" cx="440" cy="400" r="58" fill="url(#coreGrad)" stroke="#6b5424" stroke-width="1" />
               <circle id="sunHi" class="core-hi" cx="419" cy="375" r="36" fill="url(#coreHi)" />
               <!-- 星球环 · 前半：压在核面前面（从左下掠到右下），Saturn 感的来源 -->
               <g id="sunRingFront" transform="translate(440 400) rotate(-16)">
-                <path d="" fill="none" stroke="#a9c2e6" stroke-width="3" opacity="0.9" />
+                <path d="" fill="none" stroke="#8a97d8" stroke-width="3" opacity="0.9" />
               </g>
               <g id="coreText" transform="translate(440 400)">
                 <text id="coreSub" class="core-sub" x="0" y="-8" text-anchor="middle" dominant-baseline="central">应用场景</text>
@@ -135,7 +135,7 @@ onMounted(async () => {
      starmapLayout.js，按舞台像素实时推 —— 1 单位 ≈ 1px，字号就等于真实像素。
      旧版把整盘画死在 viewBox="0 0 900 790" 里，会被容器缩一次、fitView 再缩一次；
      而标签是恒定屏幕字号（只吃外层缩放），12.5px 实测只剩 5px，这才是「看不清字」的根因。 */
-  const STAR_ON = '#056de8', STAR_OFF = '#f0a03c';
+  const STAR_ON = '#43c6a6', STAR_OFF = '#dbb46a';
   const KMIN = 0.45, KMAX = 4;
   const DEPTH_NAME = { 1: '改参数', 2: '动结构', 3: '换方案' };
 
@@ -867,17 +867,17 @@ onMounted(async () => {
 <style scoped>
 
     .app {
-      --zh-blue: #056de8;
-      --zh-blue-hover: #0456b8;
-      --zh-blue-soft: #e6f0fd;
-      --zh-blue-line-strong: #a9d2fb;
-      --bg-2: #ffffff;
-      --surface-2: #f4f6f8;
-      --text: #1a1a1a;
-      --text-2: #454545;
-      --text-3: #8590a6;
-      --border: #e3e4e5;
-      --ok: #0f9d63;
+      --zh-blue: #5967f2;
+      --zh-blue-hover: #6f7cff;
+      --zh-blue-soft: rgba(89, 103, 242, 0.14);
+      --zh-blue-line-strong: rgba(89, 103, 242, 0.5);
+      --bg-2: #11172c;
+      --surface-2: #161d36;
+      --text: #f4f6fa;
+      --text-2: #c0c8dd;
+      --text-3: #7f8aa8;
+      --border: rgba(148, 163, 216, 0.16);
+      --ok: #43c6a6;
     }
     * { box-sizing: border-box; }
     /* 注意：scoped 样式里的 html / body 选择器会被编译成 html[data-v-x]，永远匹配不到。
@@ -889,7 +889,7 @@ onMounted(async () => {
     .sm-head {
       display: flex; align-items: center; gap: 12px;
       padding: 10px 14px; flex-wrap: wrap;
-      background: #fff; border-bottom: 1px solid var(--border);
+      background: var(--surface); border-bottom: 1px solid var(--border);
     }
     .sm-headline { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
     .sm-title { font-size: 15px; font-weight: 600; color: var(--text); margin: 0; }
@@ -922,7 +922,7 @@ onMounted(async () => {
     .stage {
       position: relative; flex: none; min-width: 0;
       height: clamp(380px, 54vh, 640px);
-      background: #fbfcfd; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+      background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
     }
     .web { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
     .web:active { cursor: grabbing; }
@@ -932,7 +932,7 @@ onMounted(async () => {
       background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px;
     }
     .panel::-webkit-scrollbar { width: 6px; }
-    .panel::-webkit-scrollbar-thumb { background: #dfe3e8; border-radius: 3px; }
+    .panel::-webkit-scrollbar-thumb { background: #2a3358; border-radius: 3px; }
 
     /* svg：星核 + 中心三行字是模板渲染的，scoped 能覆盖，规则留在这里。
        星盘里**其余**元素（轨道 / 射线 / 星点 / 标签）都是 onMounted 里 createElementNS
@@ -940,9 +940,9 @@ onMounted(async () => {
        后果：标签掉回 SVG 默认的 16px / 纯黑 / 无白描边（压在轨道线上就是「看不清字」）、
        .orbit 的 stroke 变 none（三层轨道环压根没画出来）、.star-ring 的 opacity:0 失效（每颗星都挂个常亮圈）。
        所以它们全部搬到文件末尾的非 scoped 样式块，用 #studentStepsApp 自己限定作用域。 */
-    .core-sub { font-size: 16px; font-weight: 600; fill: #174a86; }
+    .core-sub { font-size: 16px; font-weight: 600; fill: #4a3a14; }
     .core-num { font-size: 15px; fill: var(--zh-blue); font-weight: 600; }
-    .core-hint { font-size: 12px; fill: #8590a6; }
+    .core-hint { font-size: 12px; fill: #6b5424; }
     .corehit { cursor: pointer; }
     .web.locked .sun-glow { opacity: 0.3; }
 
@@ -981,7 +981,7 @@ onMounted(async () => {
     .lg-line { display: flex; align-items: center; gap: 12px; font-size: 11.5px; color: var(--text-3); }
     .lg { display: inline-flex; align-items: center; gap: 5px; }
     .lg i { width: 9px; height: 9px; border-radius: 50%; flex: none; }
-    .lg.sun i { background: radial-gradient(circle at 34% 30%, #fff6e2, #f0b45c); box-shadow: 0 0 5px rgba(240,180,92,0.65); }
+    .lg.sun i { background: radial-gradient(circle at 34% 30%, #f0d9a8, #dbb46a); box-shadow: 0 0 5px rgba(219,180,106,0.5); }
     .lg.ok i { background: var(--zh-blue); }
     .lg-line.depth { gap: 0; white-space: nowrap; }
     .lg-line.depth b { font-weight: 500; color: var(--text-2); margin-left: 4px; }
@@ -994,12 +994,12 @@ onMounted(async () => {
     }
     .zoomtag {
       position: absolute; left: 14px; bottom: 12px; font-size: 11.5px; color: var(--text-3);
-      border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px; background: #fff;
+      border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px; background: var(--surface-2);
     }
     .zoomtag b { color: var(--zh-blue); }
     .zoombar { position: absolute; right: 14px; bottom: 12px; display: flex; flex-direction: column; gap: 8px; }
     .zoombar button {
-      width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: #fff;
+      width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface-2);
       color: var(--text-2); font-size: 15px; line-height: 1; cursor: pointer; padding: 0; font-family: inherit; transition: 0.16s;
     }
     .zoombar button.sm { font-size: 11px; }
@@ -1048,7 +1048,7 @@ onMounted(async () => {
   #studentStepsApp .chip.on { color: #fff; background: var(--zh-blue); border-color: var(--zh-blue); }
 
   /* ---- 星盘 ---- */
-  #studentStepsApp .orbit { fill: none; stroke: #d5dbe4; stroke-width: 1; opacity: 0.75; stroke-dasharray: 3 7; }
+  #studentStepsApp .orbit { fill: none; stroke: #2a3358; stroke-width: 1; opacity: 0.75; stroke-dasharray: 3 7; }
   #studentStepsApp .ray { fill: none; stroke-width: 1.2; opacity: 0.5; }
   #studentStepsApp .ray.hot { opacity: 1; stroke-width: 1.6; }
   #studentStepsApp .node { cursor: pointer; }
@@ -1064,15 +1064,15 @@ onMounted(async () => {
   /* 字号必须与 starmapLayout.js 的 labelFs(14) / labelOff(14) / labelDesc 一致，
      否则「布局按 14px 算占位、实际画出来另一个尺寸」——摆位和渲染两张皮。 */
   #studentStepsApp .lbl {
-    font-size: 14px; font-weight: 600; fill: #16181c;
-    paint-order: stroke; stroke: #fbfcfd; stroke-width: 5.5; stroke-linejoin: round;
+    font-size: 14px; font-weight: 600; fill: #f4f6fa;
+    paint-order: stroke; stroke: #0b1020; stroke-width: 5.5; stroke-linejoin: round;
     transition: font-size 0.2s, opacity .35s ease;
   }
   #studentStepsApp .node.on .lbl { font-size: 15.5px; fill: var(--zh-blue); }
   #studentStepsApp .node.hov .lbl { fill: var(--zh-blue); }
   #studentStepsApp .node-detail {
-    font-size: 11.5px; fill: #6f7b8f;
-    paint-order: stroke; stroke: #fbfcfd; stroke-width: 5; stroke-linejoin: round;
+    font-size: 11.5px; fill: #9aa5c4;
+    paint-order: stroke; stroke: #0b1020; stroke-width: 5; stroke-linejoin: round;
     transition: opacity .4s ease;
   }
 
@@ -1147,11 +1147,11 @@ onMounted(async () => {
   #studentStepsApp .hint b { color: var(--text); }
   #studentStepsApp .np-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
   #studentStepsApp .verified { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; padding: 3px 9px; border-radius: 4px; }
-  #studentStepsApp .verified.ok { color: #0b7a4d; background: #e8f7f0; border: 1px solid #bfe6d3; }
-  #studentStepsApp .verified.draft { color: #b8792a; background: #fef6e9; border: 1px solid #f6ddb6; }
+  #studentStepsApp .verified.ok { color: #43c6a6; background: rgba(67,198,166,0.12); border: 1px solid rgba(67,198,166,0.35); }
+  #studentStepsApp .verified.draft { color: #dbb46a; background: rgba(219,180,106,0.12); border: 1px solid rgba(219,180,106,0.35); }
   #studentStepsApp .back-btn { margin-left: auto; padding: 5px 11px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-2); color: var(--text-2); font-size: 12px; cursor: pointer; font-family: inherit; transition: 0.16s; }
   #studentStepsApp .back-btn:hover { color: var(--zh-blue); border-color: var(--zh-blue-line-strong); background: var(--zh-blue-soft); }
-  #studentStepsApp .learn { background: #e8f7f0; border: 1px solid #bfe6d3; border-radius: 6px; padding: 11px 13px; font-size: 13px; color: #0b7a4d; line-height: 1.8; margin-top: 6px; }
+  #studentStepsApp .learn { background: rgba(67,198,166,0.1); border: 1px solid rgba(67,198,166,0.32); border-radius: 6px; padding: 11px 13px; font-size: 13px; color: #43c6a6; line-height: 1.8; margin-top: 6px; }
   #studentStepsApp .learn b { color: #0b7a4d; }
   /* 「回到总览」和「返回上一级」是两件事，面板里用一行小字把出口说清楚 */
   #studentStepsApp .nav-note { font-size: 12px; color: var(--text-3); line-height: 1.7; margin: 8px 0 0; }

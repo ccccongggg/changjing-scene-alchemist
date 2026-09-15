@@ -209,7 +209,7 @@ const edges = computed(() => {
 /* 同心蛛丝（虚线椭圆环） */
 .sg__ring {
   fill: none;
-  stroke: rgba(5, 109, 232, 0.16);
+  stroke: rgba(125, 137, 255, 0.16);
   stroke-width: 0.6;
   stroke-dasharray: 2 4;
 }
@@ -217,18 +217,18 @@ const edges = computed(() => {
 /* 径向辐条 */
 .sg__spoke {
   fill: none;
-  stroke: rgba(5, 109, 232, 0.22);
+  stroke: rgba(125, 137, 255, 0.22);
   stroke-width: 0.55;
 }
 .sg__spoke--cur {
-  stroke: rgba(5, 109, 232, 0.55);
+  stroke: rgba(125, 137, 255, 0.55);
   stroke-width: 0.9;
 }
 
 /* 当前牵引线 */
 .sg__edge--cur {
   fill: none;
-  stroke: rgba(5, 109, 232, 0.78);
+  stroke: rgba(125, 137, 255, 0.78);
   stroke-width: 1;
   stroke-dasharray: 3 6;
   animation: sg-flow 1.6s linear infinite;
@@ -267,7 +267,7 @@ const edges = computed(() => {
 }
 .sg__node-tether {
   fill: none;
-  stroke: rgba(5, 109, 232, 0.45);
+  stroke: rgba(125, 137, 255, 0.45);
   stroke-width: 0.55;
   opacity: 0.7;
 }
@@ -385,7 +385,7 @@ const edges = computed(() => {
   box-shadow: 0 0 6px var(--zh-blue);
 }
 .sg__dot--node {
-  background: #8590a6;
+  background: #556080;
   opacity: 0.7;
 }
 </style>

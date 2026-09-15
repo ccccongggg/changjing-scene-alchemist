@@ -64,8 +64,8 @@
             <stop offset="100%" stop-color="#ffd479" stop-opacity="0.2" />
           </radialGradient>
           <radialGradient id="galCoreHi">
-            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85" />
-            <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+            <stop offset="0%" stop-color="#fff6e0" stop-opacity="0.45" />
+            <stop offset="100%" stop-color="#fff6e0" stop-opacity="0" />
           </radialGradient>
           <filter id="galSunBlur"><feGaussianBlur stdDeviation="3" /></filter>
         </defs>
@@ -98,7 +98,7 @@
           <circle :cx="me.x" :cy="me.y" :r="(me.r * 1.95).toFixed(1)" class="sun__halo" />
           <circle :cx="me.x" :cy="me.y" :r="(me.r * 1.22).toFixed(1)" class="sun__glow" filter="url(#galSunBlur)" />
           <g class="sun__ring back" :transform="`translate(${me.x} ${me.y}) rotate(-16)`">
-            <path :d="sunRing(me.r).back" fill="none" stroke="#e8c98f" :stroke-width="sunRing(me.r).w" opacity="0.75" />
+            <path :d="sunRing(me.r).back" fill="none" stroke="#6b5424" :stroke-width="sunRing(me.r).w" opacity="0.75" />
           </g>
           <circle :cx="me.x" :cy="me.y" :r="me.r" class="sun__c" />
           <circle
@@ -109,7 +109,7 @@
             fill="url(#galCoreHi)"
           />
           <g class="sun__ring front" :transform="`translate(${me.x} ${me.y}) rotate(-16)`">
-            <path :d="sunRing(me.r).front" fill="none" stroke="#d9a94f" :stroke-width="sunRing(me.r).w" opacity="0.9" />
+            <path :d="sunRing(me.r).front" fill="none" stroke="#a8873f" :stroke-width="sunRing(me.r).w" opacity="0.9" />
           </g>
           <text class="sun__t" :x="me.x" :y="me.y + me.r + 17">我</text>
           <text class="sun__a" :x="me.x" :y="me.y + me.r + 32">
@@ -140,7 +140,7 @@
               class="planet__c"
               :d="starPath(p.r * 1.5, p.r * 0.63)"
               :fill="catColor(p.aiCategory)"
-              stroke="#ffffff"
+              stroke="#0b1020"
               stroke-width="1.1"
               stroke-linejoin="round"
             />
@@ -581,7 +581,7 @@ onUnmounted(() => window.clearTimeout(timer))
      这是「标签永远压不到工具条」的结构性保证 —— 不是靠算对安全区。 */
   display: flex;
   flex-direction: column;
-  background: radial-gradient(120% 90% at 50% 6%, #ffffff 0%, var(--nbg-1) 54%, var(--nbg-2) 100%);
+  background: radial-gradient(120% 90% at 50% 6%, #131a33 0%, var(--nbg-1) 54%, var(--nbg-0) 100%);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
 }
@@ -591,12 +591,12 @@ onUnmounted(() => window.clearTimeout(timer))
   z-index: 0;
   opacity: 0.9;
   pointer-events: none;
-  background-image: radial-gradient(1.3px 1.3px at 18% 26%, rgba(5, 109, 232, 0.16) 50%, transparent 51%),
-    radial-gradient(1.1px 1.1px at 72% 18%, rgba(5, 109, 232, 0.11) 50%, transparent 51%),
-    radial-gradient(1.5px 1.5px at 38% 74%, rgba(5, 109, 232, 0.1) 50%, transparent 51%),
-    radial-gradient(1.1px 1.1px at 86% 62%, rgba(5, 109, 232, 0.12) 50%, transparent 51%),
-    radial-gradient(1px 1px at 10% 84%, rgba(5, 109, 232, 0.09) 50%, transparent 51%),
-    radial-gradient(1.2px 1.2px at 58% 90%, rgba(5, 109, 232, 0.09) 50%, transparent 51%);
+  background-image: radial-gradient(1.3px 1.3px at 18% 26%, rgba(125, 137, 255, 0.16) 50%, transparent 51%),
+    radial-gradient(1.1px 1.1px at 72% 18%, rgba(125, 137, 255, 0.11) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 38% 74%, rgba(125, 137, 255, 0.1) 50%, transparent 51%),
+    radial-gradient(1.1px 1.1px at 86% 62%, rgba(125, 137, 255, 0.12) 50%, transparent 51%),
+    radial-gradient(1px 1px at 10% 84%, rgba(125, 137, 255, 0.09) 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 58% 90%, rgba(125, 137, 255, 0.09) 50%, transparent 51%);
 }
 /* 工具条 = 画布上方独立的一行。不再是 absolute 浮层，所以长面包屑、窄容器都不会压到画布。 */
 .gal__bar {
@@ -863,7 +863,7 @@ onUnmounted(() => window.clearTimeout(timer))
 }
 .planet__halo {
   fill: none;
-  stroke: rgba(5, 109, 232, 0.55);
+  stroke: rgba(125, 137, 255, 0.55);
   stroke-width: 1.4;
   stroke-dasharray: 4 5;
   transform-box: fill-box;
@@ -891,16 +891,16 @@ onUnmounted(() => window.clearTimeout(timer))
   pointer-events: none;
 }
 .moon__spoke {
-  stroke: rgba(5, 109, 232, 0.35);
+  stroke: rgba(125, 137, 255, 0.35);
   stroke-width: 1;
 }
 .moon__c {
-  fill: #0fae96;
-  stroke: #ffffff;
+  fill: #43c6a6;
+  stroke: #0b1020;
   stroke-width: 1;
 }
 .moon__t {
-  fill: #0b7a6a;
+  fill: #1d7a64;
   font-size: 11px;
   pointer-events: none;
 }

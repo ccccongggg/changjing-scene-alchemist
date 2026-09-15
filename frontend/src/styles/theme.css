@@ -1,40 +1,43 @@
-/* ===== 场景炼金师 · 知乎风格（白底 + 知乎蓝） ===== */
+/* ===== 场景炼金师 SCENE ALCHEMIST · 品牌深空暗色系统 =====
+   品牌规范 v1.0：#0B1020 深空 / #5967F2 轨道紫蓝 / #43C6A6 适配绿 /
+   #DBB46A 星核金 / #F4F6FA 星尘白
+   令牌名保持不变（组件层零改动即可换肤） */
 :root {
-  /* 知乎主色 */
-  --zh-blue: #056de8;
-  --zh-blue-2: #0084ff;
-  --zh-blue-hover: #0050b3;
-  --zh-blue-soft: #ebf3ff;
-  --zh-blue-line: rgba(5, 109, 232, 0.18);
-  --zh-blue-line-strong: rgba(5, 109, 232, 0.32);
+  /* 品牌主色（轨道紫蓝 = 原知乎蓝位） */
+  --zh-blue: #5967f2;
+  --zh-blue-2: #7d89ff;
+  --zh-blue-hover: #6f7cff;
+  --zh-blue-soft: rgba(89, 103, 242, 0.14);
+  --zh-blue-line: rgba(89, 103, 242, 0.28);
+  --zh-blue-line-strong: rgba(89, 103, 242, 0.5);
 
-  /* 中性 */
-  --bg: #f6f6f6;       /* 知乎灰底 */
-  --bg-2: #ffffff;     /* 白卡 */
-  --surface: #ffffff;
-  --surface-2: #f6f6f6;
-  --surface-3: #f0f2f7;
-  --border: #ebebeb;
-  --border-strong: #d8d8d8;
+  /* 中性（深空分层） */
+  --bg: #0b1020;              /* 深空底 */
+  --bg-2: #11172c;            /* 卡片底 */
+  --surface: #11172c;
+  --surface-2: #161d36;
+  --surface-3: #1c2442;
+  --border: rgba(148, 163, 216, 0.16);
+  --border-strong: rgba(148, 163, 216, 0.32);
 
-  /* 文字 */
-  --text: #1a1a1a;
-  --text-2: #444444;
-  --text-3: #8590a6;       /* 知乎浅灰 */
+  /* 文字（星尘白系） */
+  --text: #f4f6fa;
+  --text-2: #c0c8dd;
+  --text-3: #7f8aa8;
 
-  /* 辅色（金色降级为蛛网/装饰点缀，不再做主色） */
-  --gold: #e7b873;
-  --gold-2: #f4d79e;
-  --gold-soft: rgba(231, 184, 115, 0.08);
-  --gold-line: rgba(231, 184, 115, 0.22);
+  /* 辅色（星核金，点缀用） */
+  --gold: #dbb46a;
+  --gold-2: #f0d9a8;
+  --gold-soft: rgba(219, 180, 106, 0.1);
+  --gold-line: rgba(219, 180, 106, 0.3);
 
   /* 形状 */
   --radius: 8px;
   --radius-sm: 6px;
   --radius-lg: 12px;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
 
   /* 字体 */
   --font: -apple-system, BlinkMacSystemFont, "PingFang SC",
@@ -101,7 +104,7 @@ canvas {
   }
 }
 a {
-  color: var(--zh-blue);
+  color: var(--zh-blue-2);
   text-decoration: none;
 }
 a:hover {
@@ -115,14 +118,14 @@ p {
   margin: 0;
 }
 
-/* ----- 背景氛围光（弱化，深色炼金光圈改为浅色光晕） ----- */
+/* ----- 背景氛围光（品牌轨道光圈） ----- */
 .lk-aurora {
   display: none;
 }
 
-/* ----- 文字渐变（保留作为重点字点缀，但改用蓝色调） ----- */
+/* ----- 文字渐变（重点字点缀：轨道紫蓝 → 适配绿） ----- */
 .lk-grad {
-  background: linear-gradient(100deg, var(--zh-blue-2), var(--zh-blue));
+  background: linear-gradient(100deg, var(--zh-blue-2), #43c6a6);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -157,11 +160,11 @@ p {
 .lk-btn--ghost {
   background: transparent;
   border-color: var(--zh-blue-line-strong);
-  color: var(--zh-blue);
+  color: var(--zh-blue-2);
 }
 .lk-btn--ghost:hover {
   background: var(--zh-blue-soft);
-  color: var(--zh-blue-hover);
+  color: #aeb6ff;
   border-color: var(--zh-blue);
 }
 .lk-btn--flat {
@@ -193,7 +196,7 @@ p {
   line-height: 1.4;
   background: var(--zh-blue-soft);
   border: 1px solid var(--zh-blue-line);
-  color: var(--zh-blue);
+  color: #aeb6ff;
   white-space: nowrap;
 }
 .lk-chip--muted {
@@ -210,7 +213,7 @@ p {
   font-size: 11px;
   font-weight: 600;
   background: var(--zh-blue-soft);
-  color: var(--zh-blue);
+  color: #aeb6ff;
   border: 1px solid var(--zh-blue-line);
 }
 
@@ -255,36 +258,36 @@ p {
    仅补充 changjing 主题缺失的部分，不影响已有的 .lk-* 体系。
    ========================================================================== */
 
-/* ---- 星图画布令牌（浅色，跟站点同一套语言） ---- */
+/* ---- 星图画布令牌（品牌深空版：画布即深空） ---- */
 :root {
-  --nbg-0: #ffffff;
-  --nbg-1: #f8fafd;
-  --nbg-2: #eef4fd;
-  --nbg-line: rgba(5, 109, 232, 0.14);
-  --nbg-line-2: rgba(5, 109, 232, 0.32);
+  --nbg-0: #0b1020;
+  --nbg-1: #0e1428;
+  --nbg-2: #131a33;
+  --nbg-line: rgba(89, 103, 242, 0.22);
+  --nbg-line-2: rgba(125, 137, 255, 0.42);
 
-  --n-text: #1a1a1a;
-  --n-text-2: #444444;
-  --n-text-3: #8590a6;
+  --n-text: #f4f6fa;
+  --n-text-2: #c0c8dd;
+  --n-text-3: #7f8aa8;
 
-  --n-pill: rgba(255, 255, 255, 0.94);
-  --n-pill-line: #ebebeb;
+  --n-pill: rgba(17, 23, 44, 0.94);
+  --n-pill-line: rgba(148, 163, 216, 0.24);
 
-  --st-untouched: #c3cbdc;
-  --st-mastered: #14a44d;
-  --st-pending: #e08a00;
-  --st-pending-bg: #fff4e0;
-  --st-adopted: #4f7cf0;
-  --st-skipped: #9aa4b8;
-  --st-skipped-bg: #f2f4f8;
-  --st-active: #056de8;
-  --st-core: #e79a1f;
-  --st-core-1: #ffe9bd;
-  --st-core-2: #ffc65c;
+  --st-untouched: #3a4468;
+  --st-mastered: #43c6a6;
+  --st-pending: #dbb46a;
+  --st-pending-bg: rgba(219, 180, 106, 0.12);
+  --st-adopted: #7d89ff;
+  --st-skipped: #556080;
+  --st-skipped-bg: rgba(85, 96, 128, 0.18);
+  --st-active: #5967f2;
+  --st-core: #dbb46a;
+  --st-core-1: #3d2f14;
+  --st-core-2: #dbb46a;
 
   --n-ai: #b98cff;
-  --n-zhihu: #4f8cff;
-  --n-web: #34d3a6;
+  --n-zhihu: #7d89ff;
+  --n-web: #43c6a6;
 }
 
 /* ---- 通用按钮（nebula 方案库用到，changjing 原是 .lk-btn 体系，二者并存） ---- */
@@ -319,7 +322,7 @@ p {
 }
 .btn--ghost {
   border-color: var(--zh-blue-line-strong);
-  color: var(--zh-blue);
+  color: var(--zh-blue-2);
 }
 .btn--ghost:hover {
   background: var(--zh-blue-soft);
@@ -360,7 +363,7 @@ p {
   line-height: 1.5;
   background: var(--zh-blue-soft);
   border: 1px solid var(--zh-blue-line);
-  color: var(--zh-blue);
+  color: #aeb6ff;
   white-space: nowrap;
 }
 .chip--muted {
@@ -377,6 +380,6 @@ p {
   font-size: 11px;
   font-weight: 600;
   background: var(--zh-blue-soft);
-  color: var(--zh-blue);
+  color: #aeb6ff;
   border: 1px solid var(--zh-blue-line);
 }

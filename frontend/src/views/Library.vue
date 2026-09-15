@@ -335,7 +335,7 @@ function move(s, cat) {
 .lib-sync {
   margin-top: 4px;
   font-size: 12.5px;
-  color: var(--zh-blue, #056de8);
+  color: var(--zh-blue, #5967f2);
 }
 
 /* ---------- 奖章墙 ---------- */
@@ -467,7 +467,7 @@ function move(s, cat) {
   min-width: 96px;
   padding: 10px 12px;
   border-radius: 10px;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
 }
 .ov__stat b {
@@ -644,7 +644,7 @@ function move(s, cat) {
   font-size: 11.5px;
   color: var(--text-3);
   padding: 8px 10px;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
 }
@@ -751,7 +751,7 @@ function move(s, cat) {
   font-size: 12.5px;
   font-family: inherit;
   color: var(--text-2);
-  background: #fff;
+  background: var(--surface);
 }
 .saved__head {
   display: flex;

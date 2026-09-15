@@ -551,7 +551,7 @@ onUnmounted(() => {
   color: var(--zh-blue);
 }
 .scene__mode--on {
-  background: #ffffff;
+  background: var(--surface-2);
   color: var(--zh-blue);
   box-shadow: var(--shadow);
 }
@@ -629,7 +629,7 @@ onUnmounted(() => {
   gap: 8px;
   align-self: flex-start;
   border: 1px solid var(--border-strong);
-  background: #ffffff;
+  background: var(--surface-2);
   color: var(--text-2);
   border-radius: 999px;
   padding: 8px 16px;
@@ -651,10 +651,10 @@ onUnmounted(() => {
 @keyframes micPulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(5, 109, 232, 0.35);
+    box-shadow: 0 0 0 0 rgba(125, 137, 255, 0.35);
   }
   50% {
-    box-shadow: 0 0 0 6px rgba(5, 109, 232, 0);
+    box-shadow: 0 0 0 6px rgba(125, 137, 255, 0);
   }
 }
 .scene__mic:disabled {
@@ -674,7 +674,7 @@ onUnmounted(() => {
 }
 /* 失败提示：必须比普通提示更显眼，否则用户还是以为「点了没反应」 */
 .scene__voice-tip--warn {
-  color: #b45309;
+  color: #dbb46a;
 }
 .scene__voice-alt {
   align-self: flex-start;
@@ -688,7 +688,7 @@ onUnmounted(() => {
   transition: background 0.2s ease;
 }
 .scene__voice-alt:hover {
-  background: #e3efff;
+  background: rgba(89, 103, 242, 0.14);
 }
 @media (prefers-reduced-motion: reduce) {
   .scene__mic--on {
@@ -770,7 +770,7 @@ onUnmounted(() => {
 }
 .scene__input {
   width: 100%;
-  background: #ffffff;
+  background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 9px 12px;

@@ -123,7 +123,7 @@ function stateClass(i) {
   display: block;
 }
 .fm__dust circle {
-  fill: var(--nbg-line-2, rgba(5, 109, 232, 0.32));
+  fill: var(--nbg-line-2, rgba(125, 137, 255, 0.32));
   opacity: 0.5;
 }
 .fm__orbit {
@@ -133,27 +133,27 @@ function stateClass(i) {
   opacity: 0.55;
 }
 .fm__orbit.is-lit {
-  stroke: var(--zh-blue, #056de8);
+  stroke: var(--zh-blue, #5967f2);
   stroke-dasharray: none;
   opacity: 0.85;
 }
 
 /* 星核 */
 .fm__core-halo {
-  fill: var(--zh-blue-soft, #ebf3ff);
+  fill: var(--zh-blue-soft, rgba(89, 103, 242, 0.14));
   opacity: 0.7;
 }
 .fm__core-planet {
-  fill: var(--st-core-2, #ffc65c);
+  fill: var(--st-core-2, #dbb46a);
 }
 .fm__core-ring {
   fill: none;
-  stroke: var(--st-core, #e79a1f);
+  stroke: var(--st-core, #dbb46a);
   stroke-width: 2.5;
 }
 .fm__core-t1,
 .fm__core-t2 {
-  fill: #5a3b00;
+  fill: #4a3a14;
   font-size: 12px;
   font-weight: 800;
   text-anchor: middle;
@@ -164,42 +164,42 @@ function stateClass(i) {
   cursor: pointer;
 }
 .fm__node-dot {
-  fill: #ffffff;
-  stroke: var(--st-untouched, #c3cbdc);
+  fill: #131a33;
+  stroke: var(--st-untouched, #3a4468);
   stroke-width: 2.5;
 }
 .fm__node-idx {
-  fill: var(--text-3, #8590a6);
+  fill: var(--text-3, #7f8aa8);
   font-size: 13px;
   font-weight: 800;
   text-anchor: middle;
 }
 .fm__node-label {
-  fill: var(--text-2, #444444);
+  fill: var(--text-2, #c0c8dd);
   font-size: 12.5px;
   font-weight: 600;
 }
 .fm__node.is-done .fm__node-dot {
-  fill: var(--st-mastered, #14a44d);
-  stroke: var(--st-mastered, #14a44d);
+  fill: var(--st-mastered, #43c6a6);
+  stroke: var(--st-mastered, #43c6a6);
 }
 .fm__node.is-done .fm__node-idx {
   fill: #ffffff;
 }
 .fm__node.is-active .fm__node-dot {
-  fill: #ffffff;
-  stroke: var(--zh-blue, #056de8);
+  fill: #131a33;
+  stroke: var(--zh-blue, #5967f2);
   stroke-width: 3.5;
 }
 .fm__node.is-active .fm__node-idx {
-  fill: var(--zh-blue, #056de8);
+  fill: var(--zh-blue, #5967f2);
 }
 .fm__node.is-active .fm__node-label {
-  fill: var(--zh-blue, #056de8);
+  fill: var(--zh-blue, #5967f2);
 }
 .fm__node-pulse {
   fill: none;
-  stroke: var(--zh-blue, #056de8);
+  stroke: var(--zh-blue, #5967f2);
   stroke-width: 2;
   opacity: 0;
   transform-origin: center;
@@ -218,7 +218,7 @@ function stateClass(i) {
 .fm__caption {
   margin: 0;
   font-size: 12px;
-  color: var(--text-3, #8590a6);
+  color: var(--text-3, #7f8aa8);
   text-align: center;
   line-height: 1.6;
 }

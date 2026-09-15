@@ -322,7 +322,7 @@ const onNext = () => {
   font-size: 14px;
   line-height: 1.7;
   color: var(--text);
-  background: #fff;
+  background: var(--surface-2);
   border: 1px solid var(--border-strong);
   border-radius: 10px;
   padding: 12px 14px;

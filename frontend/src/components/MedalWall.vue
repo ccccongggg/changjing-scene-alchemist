@@ -137,19 +137,19 @@ function go(badge) {
   font-variant-numeric: tabular-nums;
 }
 .mw__chip--gold {
-  background: #fffaf0;
+  background: rgba(219, 180, 106, 0.1);
   border-color: rgba(231, 184, 115, 0.55);
-  color: #96660f;
+  color: #dbb46a;
 }
 .mw__chip--silver {
-  background: #f6f6f7;
+  background: var(--surface-2);
   border-color: rgba(160, 160, 150, 0.5);
-  color: #5f5e5a;
+  color: var(--text-2);
 }
 .mw__chip--bronze {
-  background: #fdf6ec;
+  background: rgba(219, 180, 106, 0.12);
   border-color: rgba(186, 117, 23, 0.42);
-  color: #8a5410;
+  color: #c9a45c;
 }
 .mw__chip--none {
   color: var(--text-3);

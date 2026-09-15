@@ -323,7 +323,7 @@ onMounted(async () => {
 .orb {
   position: absolute;
   inset: 10% 8%;
-  background: radial-gradient(circle at 50% 45%, rgba(5, 109, 232, 0.14), transparent 65%);
+  background: radial-gradient(circle at 50% 45%, rgba(125, 137, 255, 0.14), transparent 65%);
   filter: blur(10px);
   animation: lk-pulse 5s ease-in-out infinite;
 }
@@ -368,7 +368,7 @@ onMounted(async () => {
   color: var(--zh-blue);
   background: var(--bg-2);
   border: 1px solid var(--zh-blue-line);
-  box-shadow: 0 3px 10px -4px rgba(5, 109, 232, 0.25);
+  box-shadow: 0 3px 10px -4px rgba(125, 137, 255, 0.25);
   animation: lk-drift 5s ease-in-out infinite;
   white-space: nowrap;
 }
@@ -414,7 +414,7 @@ onMounted(async () => {
   right: 18px;
   font-size: 26px;
   font-weight: 800;
-  color: rgba(5, 109, 232, 0.1);
+  color: rgba(125, 137, 255, 0.1);
 }
 .loop__step h3 {
   font-size: 16px;

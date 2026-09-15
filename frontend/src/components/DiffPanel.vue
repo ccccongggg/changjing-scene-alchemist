@@ -58,13 +58,13 @@ defineProps({ data: { type: Object, required: true } })
   margin: 0 0 10px;
 }
 .diff__title--ok {
-  color: #0f9d63;
+  color: #43c6a6;
 }
 .diff__title--warn {
   color: var(--zh-blue);
 }
 .diff__title--done {
-  color: #0f9d63;
+  color: #43c6a6;
 }
 .diff__risk-hint {
   margin: -4px 0 10px;
