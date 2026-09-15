@@ -149,4 +149,20 @@ defineProps({ data: { type: Object, required: true } })
     line-height: 1.7;
   }
 }
+
+/* ===== 小屏（手机）：对比格堆叠后单栏全宽，字号微调 ===== */
+@media (max-width: 480px) {
+  .diff {
+    padding: 14px 12px;
+  }
+  .diff__card {
+    padding: 11px 10px;
+  }
+  .diff__cell p {
+    font-size: 13.5px;
+  }
+  .diff__impact {
+    font-size: 12.5px;
+  }
+}
 </style>

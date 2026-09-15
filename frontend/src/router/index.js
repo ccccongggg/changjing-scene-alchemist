@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import StartScreen from '../views/StartScreen.vue'
 import SourceList from '../views/SourceList.vue'
 import AdaptBench from '../views/AdaptBench.vue'
-import MyLibrary from '../views/MyLibrary.vue'
+import Library from '../views/Library.vue'
 import StarMap from '../views/StarMap.vue'
 import StudentStepsStarmap from '../views/StudentStepsStarmap.vue'
 
@@ -12,7 +12,7 @@ const routes = [
   { path: '/starmap', name: 'starmap', component: StarMap },
   { path: '/steps/:sceneId', name: 'steps', component: StudentStepsStarmap, props: true },
   { path: '/adapt/:id', name: 'workshop', component: AdaptBench, props: true },
-  { path: '/library', name: 'library', component: MyLibrary }
+  { path: '/library', name: 'library', component: Library }
 ]
 
 const router = createRouter({

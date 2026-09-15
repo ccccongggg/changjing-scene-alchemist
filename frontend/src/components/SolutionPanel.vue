@@ -171,4 +171,20 @@ defineEmits(['rediagnose'])
     padding: 12px;
   }
 }
+
+/* ===== 小屏（手机）===== */
+@media (max-width: 480px) {
+  .sol {
+    padding: 14px 12px;
+  }
+  .sol__summary {
+    font-size: 13px;
+  }
+  .sol__code {
+    font-size: 11.5px;
+    padding: 10px;
+    /* 长代码行在手机上可以横向滑，但不能撑破卡片 */
+    max-width: 100%;
+  }
+}
 </style>

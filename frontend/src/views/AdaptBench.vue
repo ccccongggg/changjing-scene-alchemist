@@ -9,69 +9,78 @@
         <span v-if="source" class="lk-chip lk-chip--muted">{{ typeLabel(source.content_type) }}</span>
       </div>
 
-      <div v-if="phase === 'extracting'" class="bench__loading">
-        <span class="bench__spinner" /> 解构原帖场景中…
-      </div>
+      <!-- 星图引导 + 右侧工作台（仅整页模式）；以星图形式陪用户梳理真实场景 -->
+      <div :class="props.mode === 'page' ? 'forge' : ''">
+        <aside v-if="props.mode === 'page'" class="forge__guide">
+          <ForgeStarMap :steps="STEPS" :progress="progress" :active="activeStep" @select="onSelectStep" />
+        </aside>
 
-      <template v-else>
-        <OriginCard v-if="origin && props.mode === 'page'" :data="origin" />
+        <div :class="props.mode === 'page' ? 'forge__panel' : ''">
+          <div v-if="phase === 'extracting'" class="bench__loading">
+            <span class="bench__spinner" /> 解构原帖场景中…
+          </div>
 
-        <SceneForm v-if="phase === 'form'" :chips="demoChips" :running="phase === 'running'" @submit="onSubmit" />
+          <template v-else>
+            <OriginCard v-if="origin && props.mode === 'page'" :data="origin" />
 
-        <div v-else-if="phase === 'running'" class="bench__loading">
-          <span class="bench__spinner" /> {{ runStage }}
+            <SceneForm v-if="phase === 'form'" :chips="demoChips" :running="phase === 'running'" @submit="onSubmit" />
+
+            <div v-else-if="phase === 'running'" class="bench__loading">
+              <span class="bench__spinner" /> {{ runStage }}
+            </div>
+
+            <template v-if="phase === 'result' && diff && solution">
+              <div class="bench__net">
+                已加入场景应用网 ✓ 这篇帖子现在有了你的真实解法
+                <span class="bench__net-prov">· 由 {{ providerLabel }} 生成</span>
+              </div>
+
+              <section v-if="props.mode === 'page'" class="bench__graph lk-card">
+                <h3 class="bench__graph-title">场景应用网 · 同帖千面</h3>
+                <ScenarioGraph
+                  :post-title="source?.title"
+                  :scenarios="netScenarios"
+                  :current-id="currentId"
+                />
+              </section>
+
+              <p v-if="notice" class="bench__notice">{{ notice }}</p>
+
+              <DiffPanel :data="diff" />
+              <SolutionPanel
+                :key="adaptation?.id"
+                :data="solution"
+                :adaptation-id="adaptation?.id ?? null"
+                @rediagnose="onRediagnose"
+              />
+
+              <div class="bench__ops">
+                <button class="lk-btn lk-btn--primary" @click="reuse">
+                  {{ props.mode === 'compact' ? '换个场景再炼' : '换个场景再炼成（一帖两吃）' }}
+                </button>
+                <button class="lk-btn lk-btn--ghost" @click="copyAll">
+                  {{ copied ? '已复制' : '复制全文' }}
+                </button>
+                <router-link v-if="props.mode === 'page'" to="/library" class="lk-btn lk-btn--primary">
+                  存入方案库 ✓ 查看
+                </router-link>
+                <a
+                  v-if="props.mode === 'page' && source && source.url"
+                  :href="source.url"
+                  target="_blank"
+                  rel="noopener"
+                  class="lk-btn lk-btn--ghost"
+                >
+                  打开原帖 ↗
+                </a>
+                <button v-if="props.mode === 'compact'" class="lk-btn lk-btn--ghost" @click="emit('close')">
+                  关闭
+                </button>
+              </div>
+            </template>
+          </template>
         </div>
-
-        <template v-if="phase === 'result' && diff && solution">
-          <div class="bench__net">
-            已加入场景应用网 ✓ 这篇帖子现在有了你的真实解法
-            <span class="bench__net-prov">· 由 {{ providerLabel }} 生成</span>
-          </div>
-
-          <section v-if="props.mode === 'page'" class="bench__graph lk-card">
-            <h3 class="bench__graph-title">场景应用网 · 同帖千面</h3>
-            <ScenarioGraph
-              :post-title="source?.title"
-              :scenarios="netScenarios"
-              :current-id="currentId"
-            />
-          </section>
-
-          <p v-if="notice" class="bench__notice">{{ notice }}</p>
-
-          <DiffPanel :data="diff" />
-          <SolutionPanel
-            :key="adaptation?.id"
-            :data="solution"
-            :adaptation-id="adaptation?.id ?? null"
-            @rediagnose="onRediagnose"
-          />
-
-          <div class="bench__ops">
-            <button class="lk-btn lk-btn--primary" @click="reuse">
-              {{ props.mode === 'compact' ? '换个场景再炼' : '换个场景再炼成（一帖两吃）' }}
-            </button>
-            <button class="lk-btn lk-btn--ghost" @click="copyAll">
-              {{ copied ? '已复制' : '复制全文' }}
-            </button>
-            <router-link v-if="props.mode === 'page'" to="/library" class="lk-btn lk-btn--primary">
-              存入方案库 ✓ 查看
-            </router-link>
-            <a
-              v-if="props.mode === 'page' && source && source.url"
-              :href="source.url"
-              target="_blank"
-              rel="noopener"
-              class="lk-btn lk-btn--ghost"
-            >
-              打开原帖 ↗
-            </a>
-            <button v-if="props.mode === 'compact'" class="lk-btn lk-btn--ghost" @click="emit('close')">
-              关闭
-            </button>
-          </div>
-        </template>
-      </template>
+      </div>
     </template>
   </div>
 </template>
@@ -84,6 +93,32 @@ import SceneForm from '../components/SceneForm.vue'
 import DiffPanel from '../components/DiffPanel.vue'
 import SolutionPanel from '../components/SolutionPanel.vue'
 import ScenarioGraph from '../components/ScenarioGraph.vue'
+import ForgeStarMap from '../components/ForgeStarMap.vue'
+
+// 星图引导的五个步骤（以星图形式陪用户把真实场景一步步炼清楚）
+const STEPS = [
+  { label: '选原帖' },
+  { label: '填处境' },
+  { label: '看差异' },
+  { label: '收方案' },
+  { label: '复诊' }
+]
+// 已完成（绿色）的步骤数
+const progress = computed(() => {
+  if (phase.value === 'extracting') return 0
+  if (phase.value === 'result') return 4 // 选原帖/填处境/看差异/收方案 已落成
+  return 1 // form / running：选原帖已定，正在填处境
+})
+// 当前高亮（蓝色）的步骤
+const activeStep = computed(() => {
+  if (phase.value === 'extracting') return 0
+  if (phase.value === 'result') return 4 // 引导用户进入「复诊」下一步
+  return 1
+})
+// 点击星图节点：点「填处境」可回到输入态重炼；其余节点仅作引导
+const onSelectStep = (i) => {
+  if (i === 1 && phase.value === 'result') reuse()
+}
 
 const props = defineProps({
   id: { type: [String, Number], required: true },
@@ -294,8 +329,26 @@ onUnmounted(() => stageTimer && clearInterval(stageTimer))
 
 <style scoped>
 .bench {
-  max-width: 860px;
+  max-width: 1040px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 星图引导 + 右侧工作台 两栏布局（仅整页模式生效） */
+.forge {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.forge__guide {
+  position: sticky;
+  top: 76px;
+}
+.forge__panel {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -401,6 +454,13 @@ onUnmounted(() => stageTimer && clearInterval(stageTimer))
   .bench {
     gap: 14px;
   }
+  .forge {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .forge__guide {
+    position: static;
+  }
   .bench__top {
     gap: 10px;
   }
@@ -425,6 +485,35 @@ onUnmounted(() => stageTimer && clearInterval(stageTimer))
   .bench__ops .lk-btn {
     width: 100%;
     justify-content: center;
+  }
+}
+
+/* ===== 小屏（手机）进一步收紧 ===== */
+@media (max-width: 480px) {
+  .bench__top {
+    gap: 8px;
+  }
+  .bench__title {
+    font-size: 18px;
+    line-height: 1.4;
+  }
+  /* 星图引导在手机上收小一点，别把输入区推到两屏之外 */
+  .forge__guide :deep(.fm) {
+    max-width: 260px;
+  }
+  .bench__loading {
+    padding: 22px 14px;
+    font-size: 13px;
+  }
+  .bench__net {
+    font-size: 12.5px;
+    padding: 8px 12px;
+  }
+  .bench__ops {
+    gap: 8px;
+  }
+  .bench__ops .lk-btn {
+    font-size: 14px;
   }
 }
 </style>

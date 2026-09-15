@@ -494,4 +494,26 @@ const onNext = () => {
     gap: 8px;
   }
 }
+
+/* ===== 小屏（手机）进一步收紧 ===== */
+@media (max-width: 480px) {
+  .fb__verdict {
+    padding: 12px;
+  }
+  .fb__note {
+    padding: 12px;
+  }
+  .fb__board-row {
+    padding: 10px 12px;
+  }
+  /* ≥16px：iOS 聚焦输入框时页面不再自动放大 */
+  .fb__input {
+    font-size: 16px;
+    padding: 10px 12px;
+  }
+  /* 卡点 chips 抬到可点高度 */
+  .fb__chip {
+    padding: 9px 14px;
+  }
+}
 </style>

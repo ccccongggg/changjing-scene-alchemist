@@ -25,12 +25,12 @@
 
     <div class="sm-body">
       <!-- ===== 星图舞台 ===== -->
-      <section class="stage">
+      <section class="stage" ref="stageEl">
         <svg
           ref="svgEl"
           class="web"
-          :class="[lodClass, { locked: !!activeId, entered }]"
-          viewBox="0 0 900 790"
+          :class="[lodClass, { locked: !!activeId, entered, hovering: !!hoverId }]"
+          :viewBox="viewBox"
           preserveAspectRatio="xMidYMid meet"
           @wheel.prevent="onWheel"
           @pointerdown="onDown"
@@ -40,16 +40,28 @@
           @pointerleave="onLeave"
         >
           <defs>
+            <!-- 星核光晕：最外那层冷色柔光，到边缘必须完全透明（不能有硬边），否则白底上会看到一个脏圆盘 -->
+            <radialGradient id="sunHalo">
+              <stop offset="0%" stop-color="#cfe3ff" stop-opacity="0.5" />
+              <stop offset="45%" stop-color="#e3eefc" stop-opacity="0.22" />
+              <stop offset="100%" stop-color="#eef4fd" stop-opacity="0" />
+            </radialGradient>
             <radialGradient id="sunGrad">
-              <stop offset="0%" stop-color="#d7e9fd" />
-              <stop offset="60%" stop-color="#eef5fd" />
-              <stop offset="100%" stop-color="#fbfcfd" />
+              <stop offset="0%" stop-color="#e7f1fd" />
+              <stop offset="62%" stop-color="#f2f7fd" />
+              <stop offset="100%" stop-color="#fbfcfd" stop-opacity="0.2" />
             </radialGradient>
             <radialGradient id="coreGrad">
-              <stop offset="0%" stop-color="#ffffff" />
-              <stop offset="100%" stop-color="#f2f7fd" />
+              <stop offset="0%" stop-color="#f6faff" />
+              <stop offset="58%" stop-color="#ecf3fc" />
+              <stop offset="100%" stop-color="#d9e7f8" />
             </radialGradient>
-            <filter id="sunBlur"><feGaussianBlur stdDeviation="10" /></filter>
+            <!-- 星核高光：偏左上的一团白光，让核面看起来像个球而不是一块贴纸 -->
+            <radialGradient id="coreHi">
+              <stop offset="0%" stop-color="#ffffff" stop-opacity="0.92" />
+              <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+            </radialGradient>
+            <filter id="sunBlur"><feGaussianBlur :stdDeviation="SUN_R * 0.15" /></filter>
           </defs>
 
           <g ref="vpEl" :transform="vpTransform">
@@ -67,7 +79,7 @@
               v-for="n in allNodes"
               :key="'ray' + n.id"
               class="ray"
-              :class="{ hot: activeId === n.id }"
+              :class="{ hot: activeId === n.id || hoverId === n.id }"
               :style="{ '--i': n.idx }"
               :stroke="n.verified ? STAR_ON : STAR_OFF"
               :x1="CX"
@@ -87,24 +99,71 @@
               :y2="l.b.y"
             />
 
-            <!-- 太阳：原帖 -->
+            <!-- 星核：原帖。整盘的锚点。
+                 曾经试过「放射光芒的太阳」——用户反馈形象不符合（太阳=发光天体，
+                 但这里的中心是「被验证过的起点」，不是光源），已整体撤掉。
+                 现在按 5 层画，每层都带信息，不是纯装饰：
+                   ① 核晕  冷色柔光，把星核从白底里「托」出来
+                   ② 星球环  倾斜细环，后半藏在核体后面、前半压在核面前 —— 星核不是靶心，是颗星球
+                   ③ 核辉  内层蓝白光晕
+                   ④ 进度环  外圈那道蓝弧 = 已做成占比（0 颗做成时只留一条浅色刻度环）
+                   ⑤ 核体  渐变圆面 + 偏左上高光，像个球
+                 环/晕都在 vp 组里，跟着 scale(k) 一起缩放，比例永远和轨道一致。 -->
             <g class="sun">
-              <circle class="sun-glow" :cx="CX" :cy="CY" r="86" fill="url(#sunGrad)" filter="url(#sunBlur)" />
-              <circle :cx="CX" :cy="CY" r="70" fill="none" stroke="#dbe6f4" stroke-width="1" />
-              <circle class="varc" :cx="CX" :cy="CY" r="70" fill="none" :stroke="STAR_ON" stroke-width="1.6" />
-              <circle class="corec" :cx="CX" :cy="CY" r="58" fill="url(#coreGrad)" stroke="#dbe6f4" stroke-width="1" />
+              <circle class="sun-halo" :cx="CX" :cy="CY" :r="(SUN_R * 1.95).toFixed(1)" fill="url(#sunHalo)" />
+              <circle class="sun-glow" :cx="CX" :cy="CY" :r="(SUN_R * 1.22).toFixed(1)" fill="url(#sunGrad)" filter="url(#sunBlur)" />
+              <!-- 星球环 · 后半：先画，让核体压住它的中段，只露出左右两翼 -->
+              <g class="sun-ring back" :transform="`translate(${CX} ${CY}) rotate(-16)`">
+                <path :d="SUN_RING.back" fill="none" stroke="#c9d9ee" :stroke-width="SUN_RING.w" opacity="0.75" />
+              </g>
+              <circle class="varbg" :cx="CX" :cy="CY" :r="SUN_R" fill="none" stroke="#e9f0fa" stroke-width="3" />
+              <circle
+                class="varc"
+                :cx="CX"
+                :cy="CY"
+                :r="SUN_R"
+                fill="none"
+                :stroke="STAR_ON"
+                stroke-width="3"
+                stroke-linecap="round"
+                :transform="`rotate(-90 ${CX} ${CY})`"
+                :stroke-dasharray="`${SUN_ARC.len.toFixed(1)} ${(SUN_ARC.c - SUN_ARC.len).toFixed(1)}`"
+                :opacity="SUN_ARC.len > 0.6 ? 1 : 0"
+              />
+              <circle class="corec" :cx="CX" :cy="CY" :r="(SUN_R * 0.83).toFixed(1)" fill="url(#coreGrad)" stroke="#dfe9f7" stroke-width="1" />
+              <circle
+                class="core-hi"
+                :cx="(CX - SUN_R * 0.3).toFixed(1)"
+                :cy="(CY - SUN_R * 0.36).toFixed(1)"
+                :r="(SUN_R * 0.52).toFixed(1)"
+                fill="url(#coreHi)"
+              />
+              <!-- 星球环 · 前半：压在核面前面（从左下掠到右下），Saturn 感的来源 -->
+              <g class="sun-ring front" :transform="`translate(${CX} ${CY}) rotate(-16)`">
+                <path :d="SUN_RING.front" fill="none" stroke="#a9c2e6" :stroke-width="SUN_RING.w" opacity="0.9" />
+              </g>
               <g :transform="`translate(${CX} ${CY}) scale(${inv})`">
-                <!-- 标题不再塞进太阳；顶部 chips 与右侧面板已展示完整标题 -->
-                <text class="core-sub" x="0" y="-8" text-anchor="middle">原帖 · 基准处境</text>
-                <text class="core-num" x="0" y="16" text-anchor="middle">已收录处境 ★ {{ nodes.length }}</text>
-                <text class="core-hint" x="0" y="36" text-anchor="middle">点击查看原帖拆解</text>
+                <!-- 标题不再塞进星核；顶部 chips 与右侧面板已展示完整标题 -->
+                <text
+                  v-if="CORE_FS.compact"
+                  class="core-num"
+                  x="0"
+                  y="0"
+                  :style="{ fontSize: CORE_FS.num + 'px' }"
+                  text-anchor="middle"
+                >★ {{ nodes.length }}</text>
+                <template v-else>
+                  <text class="core-sub" x="0" :y="(-SUN_R * 0.24).toFixed(1)" :style="{ fontSize: CORE_FS.sub + 'px' }" text-anchor="middle">原帖 · 基准处境</text>
+                  <text class="core-num" x="0" y="0" :style="{ fontSize: CORE_FS.num + 'px' }" text-anchor="middle">已收录处境 ★ {{ nodes.length }}</text>
+                  <text class="core-hint" x="0" :y="(SUN_R * 0.34).toFixed(1)" :style="{ fontSize: CORE_FS.hint + 'px' }" text-anchor="middle">点击查看原帖拆解</text>
+                </template>
               </g>
             </g>
             <circle
               class="corehit"
               :cx="CX"
               :cy="CY"
-              r="72"
+              :r="(SUN_R * 1.06).toFixed(1)"
               fill="transparent"
               @click.stop="openOrigin"
             >
@@ -116,7 +175,7 @@
               v-for="n in allNodes"
               :key="'n' + n.id"
               class="node"
-              :class="{ on: activeId === n.id, draft: n.id === DRAFT_ID }"
+              :class="{ on: activeId === n.id, draft: n.id === DRAFT_ID, hov: hoverId === n.id }"
               :style="{ '--i': n.idx }"
               :data-id="n.id"
               @mouseenter="hoverId = n.id"
@@ -124,20 +183,32 @@
             >
               <g :transform="wrapT(n)">
                 <g class="pop" :style="{ '--s': popScale(n) }">
-                  <circle class="nhit" r="18" fill="transparent" />
+                  <circle class="nhit" :r="STAR_SZ * 1.8" fill="transparent" />
                   <path
                     class="star"
                     :class="{ on: n.verified, tw: !n.verified }"
-                    :d="starPath(9.5, 4)"
+                    :d="starPath(STAR_SZ, STAR_SZ * 0.42)"
                     :fill="n.verified ? STAR_ON : '#ffffff'"
                     :stroke="n.verified ? STAR_ON : STAR_OFF"
                     :stroke-width="n.verified ? 0 : 1.8"
                   />
                 </g>
-                <text class="lbl" :transform="lblT(n)" :text-anchor="n.anchor" dominant-baseline="central">
-                  {{ starLabel(n) }}
+                <text
+                  v-if="n.lbl.show || hoverId === n.id || activeId === n.id"
+                  class="lbl"
+                  :transform="lblT(n)"
+                  :text-anchor="n.anchor"
+                  dominant-baseline="central"
+                >
+                  {{ n.lbl.text || starLabel(n) }}
                 </text>
-                <text class="node-detail" :transform="detT(n)" :text-anchor="n.anchor" dominant-baseline="central">
+                <text
+                  v-if="n.lbl.detail && (n.lbl.show || hoverId === n.id || activeId === n.id)"
+                  class="node-detail"
+                  :transform="detT(n)"
+                  :text-anchor="n.anchor"
+                  dominant-baseline="central"
+                >
                   {{ n.verified ? '已做成' : '还在试' }} · {{ n.peers }}人相似
                 </text>
               </g>
@@ -145,10 +216,21 @@
           </g>
         </svg>
 
-        <div class="hintbar">
-          滚轮缩放 · 拖拽平移<br />
-          <b>点星看这一版改了什么 · 点太阳看原帖拆解 · 右上角「炼一个我的处境」加新星</b>
+        <!-- 图例：一眼看懂这张图怎么读（长段说明在右侧面板里） -->
+        <div class="legend">
+          <div class="lg-line">
+            <span class="lg sun"><i></i>原帖 · 星核<em>外圈蓝弧＝已做成比例</em></span>
+          </div>
+          <div class="lg-line">
+            <span class="lg ok"><i></i>已做成</span>
+            <span class="lg off"><i></i>还在试</span>
+          </div>
+          <div class="lg-line depth">
+            由内到外<em>›</em><b>改参数</b><em>›</em><b>动结构</b><em>›</em><b>换方案</b>
+          </div>
         </div>
+
+        <div class="hintbar">滚轮缩放 · 拖拽平移 · 点星看这一版改了什么 · 点星核看原帖拆解</div>
 
         <div class="zoomtag">{{ lodName }} · <b>{{ k.toFixed(1) }}x</b></div>
         <div class="zoombar">
@@ -168,9 +250,9 @@
           还没有可展示的原帖。先去<router-link to="/bench">收藏台</router-link>收一篇。
         </div>
 
-        <!-- A1 · 原帖拆解（总览 / 太阳） -->
+        <!-- A1 · 原帖拆解（总览 / 星核） -->
         <template v-else-if="view === 'overview' || view === 'origin'">
-          <div class="kicker">{{ view === 'origin' ? '原帖 · 基准处境（太阳）' : 'A1 · 原帖拆解' }}</div>
+          <div class="kicker">{{ view === 'origin' ? '原帖 · 基准处境（星核）' : 'A1 · 原帖拆解' }}</div>
           <h2 class="p-title">{{ currentPost.title }}</h2>
           <p class="p-origin">{{ currentPost.origin.scene || currentPost.summary }}</p>
           <div v-if="currentPost.origin.constraints.length" class="tags">
@@ -196,7 +278,7 @@
             </table>
             <div class="sec">适用边界</div>
             <p class="p-origin">{{ currentPost.origin.boundaries }}</p>
-            <div class="sec">这颗太阳的价值</div>
+            <div class="sec">这颗星核的价值</div>
             <p class="hint">
               它已经被迁移成 <b>{{ nodes.length }}</b> 个真实处境，其中 <b>{{ verifiedCount }}</b> 个做成了。<br />
               每做成一个，原帖价值 +1 —— 它解决的不再只是作者一个人。
@@ -206,12 +288,30 @@
           <template v-else>
             <div class="sec">这张星图怎么读</div>
             <p class="hint">
-              正中这颗<b>太阳是原帖</b>，外圈每颗<b>星是一个真实处境</b>。<br />
-              <b>实心蓝星</b>＝做成了，<b>空心橙星</b>＝还在试。<br />
-              星离太阳的<b>远近</b>（三层轨道环）＝照搬要改多深：<b>改参数</b> → <b>动结构</b> → <b>换方案</b>。<br />
+              正中那颗<b>星核是原帖</b>——绕着它的<b>细环</b>是它的引力圈，外圈那道<b>蓝色弧线＝已经被做成的比例</b>（全蓝就是全做成了）。<br />
+              外圈每颗<b>星是一个真实处境</b>：<b>实心蓝星</b>＝做成了，<b>空心橙星</b>＝还在试。<br />
+              星离星核的<b>远近</b>（三层轨道环）＝照搬要改多深：<b>改参数</b> → <b>动结构</b> → <b>换方案</b>。<br />
               <b>橙色虚线</b>＝走不通之后换思路重炼的下一版。<br /><br />
               点一颗星，看这一版针对他的处境改了什么；卡住了可以直接<b>复诊</b>，AI 会换一条没走过的路再来一版。
             </p>
+
+            <!-- 入口前置的另一半：不想先点星、只想直奔「某一步怎么落地」的人走这里。
+                 可视化入口不能只存在于某颗星星的详情页里。 -->
+            <div class="sec">直接进某个处境的解决步骤星图</div>
+            <div class="entry-chips">
+              <router-link
+                v-for="n in nodes"
+                :key="'ec' + n.id"
+                class="entry-chip"
+                :to="{ name: 'steps', params: { sceneId: n.id }, query: { step: 1, from: currentPost.id } }"
+              >
+                <i class="ec-dot" :class="{ v: n.verified }" />
+                <span>{{ starLabel(n) }}</span>
+                <em>→</em>
+              </router-link>
+            </div>
+            <p class="hint sub-hint">每颗星下面都有一张「这几步到底怎么落地」的星图，点名字直接进。</p>
+
             <div class="peer">
               一个帖子的价值 ＝ <b>走通的路</b> ＋ <b>被标记的死路</b>。同一个问题，不用每个人从头撞一遍墙。
             </div>
@@ -234,6 +334,24 @@
             <template v-if="active.version > 1"> · 第 {{ active.version }} 版</template>
           </div>
           <h2 class="p-title">{{ active.name }}</h2>
+
+          <!-- ★ 可视化入口前置 ---------------------------------------------------
+               原来这条入口埋在面板最底部的「⑤ 继续拆解」里，要滚到最后才看得见。
+               它是「处境 → 解决步骤」的下一层入口，属于主路径，所以提到标题正下方，
+               做成整条可点的入口条（不是个小按钮）：一眼看到、随手点进去。-->
+          <router-link
+            v-if="active.id && active.id !== DRAFT_ID"
+            class="entry-bar"
+            :to="{ name: 'steps', params: { sceneId: active.id }, query: { step: 1, from: currentPost.id } }"
+          >
+            <span class="eb-ico" aria-hidden="true">✦</span>
+            <span class="eb-tx">
+              <b>查看这一步怎么落地 · 解决步骤星图</b>
+              <em>把这套改法拆成 {{ active.moves.length }} 步，一步一颗星</em>
+            </span>
+            <span class="eb-go">进入 →</span>
+          </router-link>
+
           <div class="np-head">
             <span class="verified" :class="active.verified ? 'ok' : 'draft'">
               {{ active.verified ? '● 已做成' : '○ 还在试' }}
@@ -290,17 +408,6 @@
             </template>
           </div>
           <p v-if="active.rounds" class="fb-note">这一版已经复诊过 {{ active.rounds }} 次 —— 每排除一个方向，棋盘就小一圈。</p>
-
-          <div class="sec">⑤ 继续拆解</div>
-          <router-link
-            v-if="active && active.id"
-            :to="{ name: 'steps', params: { sceneId: active.id }, query: { step: 1 } }"
-            class="fb-btn solve"
-            style="display:inline-flex; text-decoration:none;"
-          >
-            查看「{{ active.name }}」解决步骤星图 →
-          </router-link>
-          <p v-else class="hint">当前处境暂未生成步骤星图。</p>
         </template>
 
         <!-- 复诊：① 卡在哪一步 -->
@@ -442,17 +549,13 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { getStarMap, runAdapt, submitFeedback } from '../api'
 import AdaptBench from './AdaptBench.vue'
+import { LAYOUT_DEFAULTS, bboxAt, buildDraftNode, buildLayout, starLabel, starPath } from './starmapLayout'
 
 /* ---------------- 常量 ---------------- */
-const CX = 440
-const CY = 400
-// 轨道半径：放大以保证即使被 SQUASH 压扁（顶/底方向），最内圈星也明显落在太阳之外
-const RING = { 1: 198, 2: 280, 3: 362 }
-const SQUASH = 0.46
-const RAD = Math.PI / 180
 const STAR_ON = '#056de8'
 const STAR_OFF = '#f0a03c'
 const DEPTH_GROUPS = [
@@ -460,10 +563,81 @@ const DEPTH_GROUPS = [
   [2, '动结构'],
   [3, '换方案']
 ]
-const DEPTH_NAME = ['', '改参数', '动结构', '换方案']
 const DRAFT_ID = 'draft'
 
+/* ---------------- 舞台坐标系：1 单位 ≈ 1 像素（随容器自适应） ----------------
+   旧版把整盘画死在 900×790 里，再被容器缩放一次，字号被「双重缩小」到约 7px 才导致看不清。
+   现在 viewBox 直接跟随舞台像素尺寸：字号 = 真实像素，整体缩放只由 fitView 的 k 决定。
+   整盘的尺寸推导（轨道半径 / 压扁系数 / 星核与星的大小 / 标签占位）都在 starmapLayout.js，
+   那里是纯函数，能用真实数据直接跑几何断言。*/
+const stageEl = ref(null)
+const vbW = ref(880)
+const vbH = ref(680)
+const CX = computed(() => vbW.value / 2)
+const CY = computed(() => vbH.value / 2)
+
+const layout = computed(() =>
+  buildLayout({
+    scenes: (currentPost.value && currentPost.value.scenes) || [],
+    vbW: vbW.value,
+    vbH: vbH.value
+  })
+)
+const RING = computed(() => layout.value.ring)
+const rings = computed(() => layout.value.rings)
+const SQUASH = computed(() => layout.value.squash)
+const SUN_R = computed(() => layout.value.sunR)
+const STAR_SZ = computed(() => layout.value.starSz)
+const CORE_FS = computed(() => layout.value.coreFs)
+const nodes = computed(() => layout.value.nodes)
+const viewBox = computed(() => `0 0 ${vbW.value} ${vbH.value}`)
+
+/* ---------------- 星核的构件 ----------------
+   星球环： rx=1.45R、ry=0.5R、整体倾斜 -16°，分前后两半 ——
+   后半先画（被核体压住中段，只露两翼），前半后画（掠过核面下缘）。
+   为什么放在计算属性里、而不是 onMounted 手搓 DOM：
+   直径完全由 SUN_R 决定，舞台一变 SUN_R 就变 —— 声明式生成能跟着自动重算，
+   而且这些是模板元素，scoped 样式照常生效（手搓的拿不到 data-v，是另一个坑）。
+   注意：环的本地 path 画在 (0,0) 基准上，靠父 <g> 的 translate+rotate 定位 ——
+   这跟「rotate(a CX CY) 转本地 path」是两回事，后者会绕 (CX,CY) 远处转飞（踩过）。*/
+const SUN_RING = computed(() => {
+  const R = SUN_R.value
+  const rx = R * 1.45
+  const ry = R * 0.5
+  const f = (n) => n.toFixed(1)
+  return {
+    back: `M ${f(-rx)} 0 A ${f(rx)} ${f(ry)} 0 0 1 ${f(rx)} 0`,
+    front: `M ${f(-rx)} 0 A ${f(rx)} ${f(ry)} 0 0 0 ${f(rx)} 0`,
+    w: Math.max(1.4, R * 0.045).toFixed(1)
+  }
+})
+
+/* 进度环：弧长 = 已做成占比。
+   这道弧不是装饰 —— 它把「这颗原帖被消化了多少」直接画在星核上：
+   全蓝＝全部做成了，只剩一小段＝刚开张。一颗都没做成时整环隐掉，只留浅灰刻度环。*/
+const SUN_ARC = computed(() => {
+  const c = 2 * Math.PI * SUN_R.value
+  const ratio = nodes.value.length ? verifiedCount.value / nodes.value.length : 0
+  return { c, len: c * Math.max(0, Math.min(1, ratio)) }
+})
+
+function measureStage() {
+  const el = stageEl.value
+  if (!el) return
+  /* 用 clientWidth/Height 而不是 getBoundingClientRect()：
+     后者含 1px 边框，会让 viewBox 比 SVG 真实绘制区大 2px ——
+     整盘被多缩 0.2%、还整体偏 1px。viewBox 的单位必须跟 SVG 自己的内容盒对齐，
+     才能保证「1 单位 = 1px、字号就是真实像素」。 */
+  const w = el.clientWidth
+  const h = el.clientHeight
+  if (w < 80 || h < 80) return
+  vbW.value = w
+  vbH.value = h
+}
+let stageRO = null
+
 /* ---------------- 数据 ---------------- */
+const route = useRoute()
 const loading = ref(true)
 const posts = ref([])
 const curIdx = ref(0)
@@ -481,7 +655,12 @@ async function load() {
   try {
     const d = await getStarMap()
     posts.value = d.posts || []
-    if (curIdx.value >= posts.value.length) curIdx.value = 0
+    /* 从步骤星图「返回上一级」回来时会带 ?post=<id>：
+       直接落回刚才那篇帖，而不是被打回第一帖 —— 返回上一级应该回原地。 */
+    const want = Number(route.query.post)
+    const idx = Number.isFinite(want) && want > 0 ? posts.value.findIndex((p) => p.id === want) : -1
+    if (idx >= 0) curIdx.value = idx
+    else if (curIdx.value >= posts.value.length) curIdx.value = 0
   } catch (e) {
     posts.value = []
   } finally {
@@ -491,7 +670,18 @@ async function load() {
     playEnter()
   }
 }
-onMounted(load)
+onMounted(async () => {
+  measureStage()
+  await load()
+  if (stageEl.value && typeof ResizeObserver !== 'undefined') {
+    stageRO = new ResizeObserver(() => {
+      measureStage()
+      fitView(false)
+    })
+    stageRO.observe(stageEl.value)
+  }
+})
+onUnmounted(() => stageRO && stageRO.disconnect())
 
 function switchPost(i) {
   curIdx.value = i
@@ -504,116 +694,9 @@ function switchPost(i) {
   })
 }
 
-/* ---------------- 布局：倾斜星盘 ---------------- */
-function starPath(R, r) {
-  const p = []
-  for (let i = 0; i < 8; i++) {
-    const a = (-90 + i * 45) * RAD
-    const rad = i % 2 === 0 ? R : r
-    p.push((Math.cos(a) * rad).toFixed(2) + ' ' + (Math.sin(a) * rad).toFixed(2))
-  }
-  return 'M' + p.join(' L') + ' Z'
-}
-
-function relaxAngles(pos) {
-  const MIN = 106
-  for (let it = 0; it < 240; it++) {
-    let moved = false
-    for (let a = 0; a < pos.length; a++) {
-      for (let b = a + 1; b < pos.length; b++) {
-        const A = pos[a]
-        const B = pos[b]
-        const ax = CX + A.r * Math.cos(A.ang * RAD)
-        const ay = CY + A.r * Math.sin(A.ang * RAD)
-        const bx = CX + B.r * Math.cos(B.ang * RAD)
-        const by = CY + B.r * Math.sin(B.ang * RAD)
-        const d = Math.hypot(bx - ax, by - ay)
-        if (d >= MIN || d < 0.001) continue
-        moved = true
-        const half = (MIN - d) * 0.55
-        const da = half / Math.max(A.r * RAD, 1)
-        const db = half / Math.max(B.r * RAD, 1)
-        if (A.ang < B.ang) {
-          A.ang -= da
-          B.ang += db
-        } else {
-          A.ang += da
-          B.ang -= db
-        }
-      }
-    }
-    if (!moved) break
-  }
-}
-
-const nodes = computed(() => {
-  const p = currentPost.value
-  if (!p) return []
-  const list = p.scenes || []
-  const N = list.length
-  if (!N) return []
-
-  // 1) 按 branch 分组（保持首次出现顺序），每组占一段连续扇区 —— 同分支的星自然落在同一侧、挨在一起
-  const order = []
-  const byBranch = new Map()
-  list.forEach((sc) => {
-    const key = sc.branch || '_'
-    if (!byBranch.has(key)) {
-      byBranch.set(key, [])
-      order.push(key)
-    }
-    byBranch.get(key).push(sc)
-  })
-  const G = order.length
-  const gap = G > 1 ? Math.min(16, 360 / G / 2) : 0 // 组间留缝，避免不同分支贴在一起
-  const used = 360 - gap * G
-  const branchSlot = new Map()
-  let cursor = -90 // 从正上方开始铺
-  order.forEach((key) => {
-    const g = byBranch.get(key)
-    const span = (g.length / N) * used
-    const start = cursor + gap / 2
-    const end = cursor + span - gap / 2
-    branchSlot.set(key, { start, end, mid: (start + end) / 2, span: Math.max(end - start, 1) })
-    cursor += span
-  })
-
-  const pos = list.map((sc) => ({ ang: 0, r: RING[sc.depth] || RING[2], sc }))
-  const idPos = new Map(list.map((sc, i) => [sc, i]))
-
-  // 2) 组内按 depth 内→外排序，在该扇区内居中、紧凑铺开（同分支紧挨同一侧）
-  const STEP_MAX = 34 // 同分支内最大角间距（度），越小越聚拢
-  order.forEach((key) => {
-    const g = byBranch.get(key)
-    const { mid, span } = branchSlot.get(key)
-    const gN = g.length
-    g.sort((a, b) => (a.depth || 2) - (b.depth || 2))
-    const step = Math.min(STEP_MAX, span / Math.max(gN - 1, 1))
-    g.forEach((sc, k) => {
-      const idx = idPos.get(sc)
-      const ang = gN === 1 ? mid : mid + (k - (gN - 1) / 2) * step
-      pos[idx].ang = ang
-    })
-  })
-
-  relaxAngles(pos)
-  return pos.map((o, i) => {
-    const rad = o.ang * RAD
-    const r2 = o.r + 28 + ((i * 41) % 17) * 3 // +28 整体外扩，避开中心太阳
-    const cos = Math.cos(rad)
-    return {
-      ...o.sc,
-      idx: i,
-      ang: o.ang,
-      r: r2,
-      x: CX + r2 * cos,
-      y: CY + r2 * Math.sin(rad) * SQUASH,
-      dx: cos >= 0 ? 20 : -20,
-      dy: 0,
-      anchor: cos >= 0 ? 'start' : 'end'
-    }
-  })
-})
+/* ---------------- 布局：倾斜星盘 ----------------
+   摆位算法（分扇区 → 按 depth 铺开 → 角度松弛 → 标签朝哪一侧）全部搬到
+   starmapLayout.js，这里只做数据接线。*/
 
 const links = computed(() => {
   // 只保留橙色「复诊链」（parent）：同一原帖的不同版本之间的连接。
@@ -627,53 +710,10 @@ const links = computed(() => {
 })
 
 // 临时新星：在现有星之间找最大角度空档插进去，表示“我要在这里新增一个处境”
-function findDraftAngle(list) {
-  if (!list.length) return -90
-  const angs = list.map((n) => n.ang).sort((a, b) => a - b)
-  let maxGap = 0
-  let insertAt = -90
-  for (let i = 0; i < angs.length; i++) {
-    const cur = angs[i]
-    const next = angs[(i + 1) % angs.length]
-    const gap = ((next - cur + 360) % 360) || 360
-    if (gap > maxGap) {
-      maxGap = gap
-      insertAt = cur + gap / 2
-    }
-  }
-  return insertAt
-}
 const draftNode = computed(() => {
   if (view.value !== 'create') return null
-  const p = currentPost.value
-  if (!p) return null
-  const base = nodes.value
-  const depth = 2
-  const ang = findDraftAngle(base)
-  const r = RING[depth] + 28 + ((base.length * 41) % 17) * 3
-  const rad = ang * RAD
-  const cos = Math.cos(rad)
-  const sin = Math.sin(rad)
-  return {
-    id: DRAFT_ID,
-    name: '我的新处境',
-    sit: '在右侧面板描述你的真实处境，AI 会把它炼成一颗新星。',
-    branch: '_draft',
-    branchLabel: '新处境',
-    depth,
-    depthName: DEPTH_NAME[depth],
-    verified: false,
-    version: 1,
-    peers: 0,
-    idx: base.length,
-    ang,
-    r,
-    x: CX + r * cos,
-    y: CY + r * sin * SQUASH,
-    dx: cos * 16,
-    dy: sin * 16 * SQUASH,
-    anchor: cos > 0.18 ? 'start' : cos < -0.18 ? 'end' : 'middle'
-  }
+  if (!currentPost.value) return null
+  return buildDraftNode(layout.value, nodes.value, 2)
 })
 const allNodes = computed(() => {
   const d = draftNode.value
@@ -681,14 +721,10 @@ const allNodes = computed(() => {
 })
 
 const verifiedCount = computed(() => nodes.value.filter((n) => n.verified).length)
-const rings = [1, 2, 3].map((d) => RING[d])
 const sunTitle = computed(() => {
   const t = currentPost.value ? currentPost.value.title : ''
   return t.split(/[：:]/)[0].slice(0, 14)
 })
-function starLabel(n) {
-  return n.version > 1 ? `${n.name} · 第${n.version}版` : n.name
-}
 function shortTitle(t) {
   return t.split(/[：:]/)[0].slice(0, 12)
 }
@@ -709,7 +745,7 @@ const inv = computed(() => 1 / Math.sqrt(k.value))
 const vpTransform = computed(() => `translate(${tx.value} ${ty.value}) scale(${k.value})`)
 const wrapT = (n) => `translate(${n.x.toFixed(1)} ${n.y.toFixed(1)}) scale(${inv.value.toFixed(3)})`
 const lblT = (n) => `translate(${n.dx.toFixed(1)} ${n.dy.toFixed(1)}) scale(${inv.value.toFixed(3)})`
-const detT = (n) => `translate(${n.dx.toFixed(1)} ${(n.dy + 14).toFixed(1)}) scale(${inv.value.toFixed(3)})`
+const detT = (n) => `translate(${n.dx.toFixed(1)} ${(n.dy + LAYOUT_DEFAULTS.labelDetailOff).toFixed(1)}) scale(${inv.value.toFixed(3)})`
 
 const lod = computed(() => (k.value < 0.8 ? 1 : k.value < 1.6 ? 2 : 3))
 const lodClass = computed(() => 'lod' + lod.value)
@@ -766,33 +802,33 @@ function animateTo(nk, ntx, nty, dur = 420) {
   requestAnimationFrame(step)
 }
 function zoomBy(f) {
-  const c = { x: (CX - tx.value) / k.value, y: (CY - ty.value) / k.value }
+  const c = { x: (CX.value - tx.value) / k.value, y: (CY.value - ty.value) / k.value }
   const nk = clamp(k.value * f)
-  animateTo(nk, CX - c.x * nk, CY - c.y * nk, 300)
+  animateTo(nk, CX.value - c.x * nk, CY.value - c.y * nk, 300)
 }
 function fitView(anim = true) {
-  if (!nodes.value.length) {
+  const L = layout.value
+  if (!L.nodes.length) {
     if (anim) animateTo(1, 0, 0, 300)
     return
   }
-  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
-  nodes.value.forEach((n) => {
-    const w = starLabel(n).length * 11 + 12
-    const lx = n.x + n.dx + (n.anchor === 'start' ? 0 : n.anchor === 'end' ? -w : -w / 2)
-    minX = Math.min(minX, Math.min(n.x - 13, lx - 4))
-    maxX = Math.max(maxX, Math.max(n.x + 13, lx + w + 4))
-    minY = Math.min(minY, n.y - 17)
-    maxY = Math.max(maxY, n.y + 17)
-  })
-  const pad = 56
-  minX -= pad
-  maxX += pad
-  minY -= pad
-  maxY += pad
-  const raw = Math.min(900 / (maxX - minX), 790 / (maxY - minY))
-  const nk = Math.min(Math.max(raw, KMIN), 1.45)
-  const ntx = CX - ((minX + maxX) / 2) * nk
-  const nty = CY - ((minY + maxY) / 2) * nk
+  const nk = L.k
+  /* ⚠️⚠️ bboxAt() 返回的**已经是乘过 k 的屏幕坐标**（内部就是 n.x * k）。
+     旧版在这里又 `* nk` 了一次，等于把整盘平移了 cx·k·(1-k)：
+       9 星帖 k=1.14 → 偏 (-65,-53)px；单星帖 k=1.70 → 偏 (-524,-541)px。
+     症状就是用户报的「点空白复位之后，左边的字被切掉/看不见」——
+     盘面被推到舞台左上方，最左那几条标签直接落在画布外。
+     正确写法：屏幕中心 = bbox 中心（已含 k），平移量就是「舞台中心 - 它」。 */
+  const bb = bboxAt(L.nodes, L.starSz, nk)
+  /* 取景框把星核一起圈进来：星核也在 vp 组里吃 scale(k)，小盘面时它的星球环
+     （横向伸到 1.45R）可能比星点还靠外（它不在 bboxAt 里）。0 颗星时也靠这个把星核放进画面。*/
+  const halo = L.sunR * nk * 1.5
+  const minX = Math.min(bb.minX, L.cx * nk - halo)
+  const maxX = Math.max(bb.maxX, L.cx * nk + halo)
+  const minY = Math.min(bb.minY, L.cy * nk - halo)
+  const maxY = Math.max(bb.maxY, L.cy * nk + halo)
+  const ntx = CX.value - (minX + maxX) / 2
+  const nty = CY.value - (minY + maxY) / 2
   if (anim) animateTo(nk, ntx, nty, 480)
   else {
     k.value = nk
@@ -802,7 +838,7 @@ function fitView(anim = true) {
 }
 function focusNode(n, z = 2.5) {
   const nk = clamp(z)
-  animateTo(nk, CX - n.x * nk, CY - n.y * nk, 480)
+  animateTo(nk, CX.value - n.x * nk, CY.value - n.y * nk, 480)
 }
 
 /* ---------------- 指针交互 ---------------- */
@@ -1221,9 +1257,9 @@ function focusScene(n) {
   position: relative;
   flex: 1;
   min-width: 0;
-  height: calc(100vh - 260px);
-  min-height: 520px;
-  background: #fbfcfd;
+  height: calc(100vh - 250px);
+  min-height: 540px;
+  background: radial-gradient(130% 96% at 50% 45%, #ffffff 0%, #fafcfe 55%, #f5f9fd 100%);
   border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
@@ -1256,15 +1292,17 @@ function focusScene(n) {
 /* svg */
 .orbit {
   fill: none;
-  stroke: #d5dbe4;
-  stroke-width: 1;
-  opacity: 0.75;
-  stroke-dasharray: 3 7;
+  stroke: #cbd6e4;
+  stroke-width: 1.1;
+  opacity: 0.9;
+  stroke-dasharray: 2 6;
+  transition: opacity 0.18s ease;
 }
 .ray {
   fill: none;
   stroke-width: 1.2;
   opacity: 0.5;
+  transition: opacity 0.18s ease;
 }
 .ray.hot {
   opacity: 1;
@@ -1275,6 +1313,7 @@ function focusScene(n) {
   stroke-width: 1;
   opacity: 0.55;
   stroke-dasharray: 4 4;
+  transition: opacity 0.18s ease;
 }
 .xlink.parent {
   stroke: #f0a03c;
@@ -1284,6 +1323,7 @@ function focusScene(n) {
 }
 .node {
   cursor: pointer;
+  transition: opacity 0.18s ease;
 }
 .pop {
   transform: scale(var(--s, 1));
@@ -1330,44 +1370,181 @@ function focusScene(n) {
   }
 }
 .lbl {
-  font-size: 12.5px;
-  font-weight: 500;
-  fill: #1a1a1a;
+  font-size: 14px;
+  font-weight: 600;
+  fill: #16181c;
   paint-order: stroke;
   stroke: #fbfcfd;
-  stroke-width: 4.5;
+  stroke-width: 5.5;
   stroke-linejoin: round;
   transition: font-size 0.2s;
 }
 .node.on .lbl {
-  font-size: 14px;
+  font-size: 15.5px;
+  fill: var(--zh-blue);
+}
+.node.hov .lbl {
   fill: var(--zh-blue);
 }
 .node-detail {
-  font-size: 10.5px;
-  fill: #8590a6;
+  font-size: 11.5px;
+  fill: #6f7b8f;
   paint-order: stroke;
   stroke: #fbfcfd;
-  stroke-width: 4;
+  stroke-width: 5;
   stroke-linejoin: round;
 }
 .core-sub {
-  font-size: 15.5px;
+  font-size: 18px;
   font-weight: 600;
   fill: #174a86;
 }
 .core-num {
-  font-size: 13px;
+  font-size: 15px;
   fill: var(--zh-blue);
   font-weight: 600;
 }
 .core-hint {
-  font-size: 11px;
+  font-size: 12px;
   fill: #8590a6;
 }
 .corehit {
   cursor: pointer;
 }
+
+/* ---- 星核（冷色星球形象）：核晕 / 星球环 / 核体高光 ----
+   这些都是模板元素（属性绑定），scoped 能给它们加上 data-v，规则生效。*/
+.sun-halo {
+  animation: haloPulse 7s ease-in-out infinite;
+}
+@keyframes haloPulse {
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+/* 核体高光：偏左上的一团白，让核面有球感 —— 但它压在三行字下面，
+   pointer-events 关掉，别抢走 corehit 的点击。*/
+.core-hi {
+  pointer-events: none;
+}
+
+/* ---- 可视化入口前置（④） ---- */
+.entry-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--zh-blue-line-strong);
+  background: var(--zh-blue-soft);
+  border-radius: 8px;
+  text-decoration: none;
+  transition: 0.18s;
+}
+.entry-bar:hover {
+  background: #d8e8fd;
+  border-color: var(--zh-blue);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(5, 109, 232, 0.14);
+}
+.eb-ico {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  color: var(--zh-blue);
+  font-size: 13px;
+  box-shadow: 0 1px 4px rgba(5, 109, 232, 0.18);
+}
+.eb-tx {
+  min-width: 0;
+  flex: 1;
+}
+.eb-tx b {
+  display: block;
+  font-size: 13.5px;
+  color: var(--zh-blue);
+  font-weight: 600;
+}
+.eb-tx em {
+  display: block;
+  font-style: normal;
+  font-size: 11.5px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+.eb-go {
+  flex: none;
+  font-size: 12.5px;
+  color: var(--zh-blue);
+  font-weight: 500;
+}
+.entry-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.entry-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-2);
+  color: var(--text-2);
+  font-size: 12px;
+  text-decoration: none;
+  transition: 0.16s;
+}
+.entry-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.entry-chip em {
+  font-style: normal;
+  color: var(--zh-blue);
+  font-size: 11px;
+}
+.entry-chip:hover {
+  color: var(--zh-blue);
+  border-color: var(--zh-blue-line-strong);
+  background: var(--zh-blue-soft);
+}
+.ec-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: none;
+  background: #fff;
+  border: 1.6px solid #f0a03c;
+}
+.ec-dot.v {
+  background: var(--zh-blue);
+  border-color: var(--zh-blue);
+}
+.sub-hint {
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+/* 装饰动效的降级：系统开了「减少动态效果」就全部停下。
+   注意这里只是把 animation 关掉 —— 元素本身的透明度/颜色都在静态样式里，关了也看得见。*/
+@media (prefers-reduced-motion: reduce) {
+  .sun-halo {
+    animation: none;
+  }
+}
+
 .web.lod1 .node-detail {
   display: none;
 }
@@ -1386,6 +1563,20 @@ function focusScene(n) {
 }
 .web.locked .sun-glow {
   opacity: 0.3;
+}
+
+/* 悬停聚焦：指到哪颗星，其余先退到背景里，这一颗的名字和状态立刻能看清 */
+.web.hovering .node:not(.hov):not(.on) {
+  opacity: 0.42;
+}
+.web.hovering .ray:not(.hot) {
+  opacity: 0.12;
+}
+.web.hovering .orbit {
+  opacity: 0.32;
+}
+.web.hovering .xlink:not(.parent) {
+  opacity: 0.1;
 }
 
 /* 进场动画（一次性，entered 触发；只动 opacity / transform，不碰星点定位 transform）*/
@@ -1431,23 +1622,84 @@ function focusScene(n) {
 }
 
 /* 浮层 */
-.hintbar {
+.legend {
   position: absolute;
   left: 14px;
   top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  pointer-events: none;
+  line-height: 1;
+}
+.lg-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   font-size: 11.5px;
   color: var(--text-3);
-  line-height: 1.9;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 8px 12px;
-  max-width: 320px;
-  pointer-events: none;
 }
-.hintbar b {
+.lg {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.lg i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: none;
+}
+.lg.sun i {
+  background: radial-gradient(circle at 34% 30%, #fff6e2, #f0b45c);
+  box-shadow: 0 0 5px rgba(240, 180, 92, 0.65);
+}
+.lg.sun em {
+  font-style: normal;
+  font-size: 10.5px;
+  color: #a8b1c0;
+  margin-left: 4px;
+}
+.lg.ok i {
+  background: var(--zh-blue);
+}
+.lg.off i {
+  background: #fff;
+  border: 1.6px solid #f0a03c;
+}
+.lg-line.depth {
+  gap: 0;
+  white-space: nowrap;
+}
+.lg-line.depth b {
+  font-weight: 500;
   color: var(--text-2);
-  font-weight: 400;
+  margin-left: 4px;
+}
+.lg-line.depth em {
+  font-style: normal;
+  font-size: 10px;
+  color: #c9cfd9;
+  margin-left: 4px;
+}
+.hintbar {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  font-size: 11.5px;
+  color: var(--text-3);
+  line-height: 1;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 14px;
+  pointer-events: none;
 }
 .zoomtag {
   position: absolute;
@@ -2100,8 +2352,32 @@ function focusScene(n) {
   .hintbar {
     display: none;
   }
+  /* 小屏：图例只留「原帖 / 已做成 / 还在试」，轨道说明交给右侧面板 */
+  .legend {
+    padding: 7px 9px;
+    gap: 5px;
+  }
+  .lg-line.depth {
+    display: none;
+  }
   .sm-actions {
     margin-left: 0;
+  }
+}
+
+/* ===== 小屏（手机）===== */
+@media (max-width: 480px) {
+  .stage {
+    height: 48vh;
+    min-height: 320px;
+  }
+  .legend {
+    font-size: 11px;
+    padding: 6px 8px;
+    gap: 4px;
+  }
+  .panel {
+    padding: 12px;
   }
 }
 </style>
