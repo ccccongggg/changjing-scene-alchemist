@@ -19,6 +19,8 @@
             AI 只负责提取关键词，<b>分类由你自己建立和管理</b>。
           </template>
         </p>
+        <p v-if="syncing" class="lib-sub lib-sync">正在同步真实方案…</p>
+        <p v-else-if="realCount" class="lib-sub lib-sync">已接通真实数据：{{ realCount }} 条来自「炼我的场景」的真实方案已上图。</p>
       </header>
 
       <!-- ================= 我贡献的 ================= -->
@@ -206,14 +208,29 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useScenarioStore } from '../store/useScenarioStore'
+import { getAdaptations } from '../api'
 import ContributionGalaxy from '../components/ContributionGalaxy.vue'
 import MedalWall from '../components/MedalWall.vue'
 
 const store = useScenarioStore()
 const router = useRouter()
+
+/* 挂载即拉真实数据（后端没起/离线时静默失败，保留演示数据兜底） */
+const syncing = ref(false)
+onMounted(async () => {
+  syncing.value = true
+  try {
+    const list = await getAdaptations({ include_solution: true })
+    store.syncFromBackend(list)
+  } catch (e) {
+    /* 离线兜底：方案库照常展示本地数据 */
+  } finally {
+    syncing.value = false
+  }
+})
 
 const tab = ref('contributed')
 const detail = ref(null)
@@ -221,6 +238,7 @@ const activeCat = ref('全部')
 const newCat = ref('')
 
 /* ---------- 贡献地图交互 ---------- */
+const realCount = computed(() => store.contributed.filter((c) => c.real).length)
 function onPlanet(p) {
   detail.value = p
 }
@@ -228,7 +246,9 @@ function flag(d) {
   store.flagCategoryInaccurate(d.id)
 }
 function backToNebula(d) {
-  router.push({ path: '/starmap', query: { post: d.postId || 'ppt-ai-001', node: 't1-1' } })
+  /* 真实数据条目的 postId 是后端数字 id，StarMap 按 ?post=<数字> 落帖；
+     演示数据仍是 ppt-ai-001 / embed-001 字符串 id。 */
+  router.push({ path: '/starmap', query: { post: d.postId || 'ppt-ai-001' } })
 }
 
 /* ---------- 我点赞的 交互 ---------- */
@@ -311,6 +331,11 @@ function move(s, cat) {
 }
 .lib-sub b {
   color: var(--zh-blue);
+}
+.lib-sync {
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--zh-blue, #056de8);
 }
 
 /* ---------- 奖章墙 ---------- */

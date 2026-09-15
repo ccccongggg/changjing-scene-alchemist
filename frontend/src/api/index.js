@@ -20,7 +20,10 @@ export const getSource = (id) => api.get(`/sources/${id}`).then(unwrap)
 export const seedSources = () => api.post('/sources/seed').then((r) => r.data)
 export const updateSourceCategory = (id, category) =>
   api.patch(`/sources/${id}/category`, { category }).then(unwrap)
-export const getAdaptations = () => api.get('/adaptations').then(unwrap)
+export const getAdaptations = (opts = {}) =>
+  api
+    .get('/adaptations', { params: opts.include_solution ? { include_solution: 1 } : {} })
+    .then(unwrap)
 export const getAdaptation = (id) => api.get(`/adaptations/${id}`).then(unwrap)
 export const deleteAdaptation = (id) => api.delete(`/adaptations/${id}`).then(unwrap)
 export const extractAdapt = (postId) =>

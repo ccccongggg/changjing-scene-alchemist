@@ -59,9 +59,26 @@ def update_category(post_id: int, body: CategoryUpdate, db: Session = Depends(ge
 
 
 @router.get("/adaptations")
-def list_adaptations(db: Session = Depends(get_db)):
-    rows = db.query(Adaptation).order_by(Adaptation.id.desc()).all()
-    data = [AdaptationOut.model_validate(r, from_attributes=True).model_dump() for r in rows]
+def list_adaptations(include_solution: int = 0, db: Session = Depends(get_db)):
+    """include_solution=1 时带出 solution_json（方案库接真实数据用，一次请求拿全步骤）；
+    同时附带 post_title / post_author（方案库贡献地图的太阳层需要原帖信息）。"""
+    rows = (
+        db.query(Adaptation, SourcePost.title, SourcePost.author)
+        .outerjoin(SourcePost, Adaptation.post_id == SourcePost.id)
+        .order_by(Adaptation.id.desc())
+        .all()
+    )
+    data = []
+    for r, ptitle, pauthor in rows:
+        d = AdaptationOut.model_validate(r, from_attributes=True).model_dump()
+        d["post_title"] = ptitle
+        d["post_author"] = pauthor
+        if include_solution:
+            try:
+                d["solution"] = json.loads(r.solution_json) if r.solution_json else {}
+            except Exception:  # noqa: BLE001
+                d["solution"] = {}
+        data.append(d)
     return {"code": 0, "data": data, "msg": "ok"}
 
 

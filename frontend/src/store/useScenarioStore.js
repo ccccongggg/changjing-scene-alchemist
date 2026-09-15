@@ -747,6 +747,91 @@ export const useScenarioStore = defineStore('scenario', {
         this[k] = init[k]
       })
       this.persist()
+    },
+
+    /* ================= 真实数据接通（后端 /api/adaptations） =================
+       把「炼我的场景」真实生成的方案映射进方案库三层结构：
+         - contributed：贡献地图行星（我炼的每一条真实方案）
+         - saved：我点赞的（真实原帖太阳 + 方案条目，postId=数字串可深链回星图）
+       幂等：按 srcId（后端 adaptation.id）去重；离线/失败时保留演示数据。 */
+    syncFromBackend(list = []) {
+      if (!Array.isArray(list) || !list.length) return 0
+
+      /* --- 真实原帖（贡献地图的太阳层）--- */
+      const posts = {} // numericId -> { title, author }
+      for (const a of list) {
+        const pid = String(a.post_id)
+        if (a.post_title && !posts[pid]) posts[pid] = { title: a.post_title, author: a.post_author || '' }
+      }
+
+      /* --- 真实方案 → 行星 --- */
+      let fresh = 0
+      const haveIds = new Set(this.contributed.map((c) => c.srcId))
+      const rows = list
+        .filter((a) => !haveIds.has(a.id))
+        .map((a) => {
+          const sol = a.solution || {}
+          const steps = (sol.steps || []).map((s) =>
+            typeof s === 'string' ? s : [s.step != null ? `${s.step}. ` : '', s.action || '', s.why ? `（${s.why}）` : ''].join('')
+          )
+          const scene = [a.user_scene, a.user_constraint].filter(Boolean).join('；')
+          const title = (a.scene_tag || a.user_scene || '我的场景方案').slice(0, 40)
+          const kws = extractKeywords(scene + ' ' + title)
+          fresh += 1
+          return {
+            id: 'c_real_' + a.id,
+            srcId: a.id, // 幂等锚点
+            postId: String(a.post_id),
+            contributor: '我',
+            isMine: true,
+            real: true, // 真实数据标记（演示数据没有）
+            title,
+            sourcePost: (posts[String(a.post_id)] || {}).title || '知乎原帖 #' + a.post_id,
+            scene: a.user_scene || scene || '（未填写具体场景）',
+            goal: (sol.summary || '').slice(0, 60) || '把原帖方法迁移到我的真实场景',
+            limits: a.user_constraint ? [a.user_constraint] : [],
+            steps: steps.length ? steps : ['（该方案暂无步骤详情）'],
+            audience: '—',
+            status: '待验证',
+            mark: 'ai_only', // AI 生成内容必须标注
+            keywords: kws,
+            aiCategory: autoCluster(kws),
+            saves: 0,
+            adoptions: 0,
+            feedbacks: 0,
+            helped: 0,
+            crossScene: false,
+            createdAt: (a.created_at || '').slice(0, 10)
+          }
+        })
+      if (rows.length) this.contributed = [...rows.reverse(), ...this.contributed]
+
+      /* --- 真实原帖 → 我点赞的（保证贡献地图太阳层有数据来源）--- */
+      const haveSavedPosts = new Set(this.saved.map((s) => s.postId))
+      const savedRows = []
+      for (const [pid, p] of Object.entries(posts)) {
+        if (haveSavedPosts.has(pid)) continue
+        const related = (this.contributed || []).filter((c) => c.postId === pid && c.real)
+        savedRows.push({
+          id: 's_real_post_' + pid,
+          srcId: 'post_' + pid,
+          real: true,
+          title: p.title,
+          sourcePost: p.title,
+          scene: related.length ? `${related.length} 条真实场景方案` : '已收藏的原帖',
+          keywords: extractKeywords(p.title),
+          category: '未分类',
+          suggested: autoCluster(extractKeywords(p.title)),
+          savedAt: new Date().toISOString().slice(0, 10),
+          postId: pid,
+          nodeId: 'core',
+          isPostEntry: true // 原帖条目：点「回到星图」直达该帖
+        })
+      }
+      if (savedRows.length) this.saved = [...savedRows, ...this.saved]
+
+      this.persist()
+      return fresh
     }
   }
 })
